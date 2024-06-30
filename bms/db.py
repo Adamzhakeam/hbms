@@ -19,12 +19,12 @@ def insertProductIntoDb(product:dict)->dict:
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbtable = kutils.config.getValue('bmsDb/tables')
     
-    productId,timestamp,userId,productName,productCategory,productCostPrice,productSalePrice,productQuantity,units,productSerialNumber,productImage,others = product.values()
+    # productId,timestamp,userId,productName,productCategory,productCostPrice,productSalePrice,productQuantity,units,productSerialNumber,productImage,others = product.values()
     with kutils.db.Api(dbPath, dbtable, readonly=False ) as db:
         productInsertionResponse = db.insert(
             'products',
-            [productId,timestamp,userId,productName,productCategory,productCostPrice,
-             productSalePrice,productQuantity,units,productSerialNumber,productImage,others]
+            [product['productId'],product['timestamp'],product['userId'],product['productName'],product['productCategory'],product['productCostPrice'],
+             product['productSalePrice'],product['productQuantity'],product['units'],product['productSerialNumber'],product['productImage'],product['others']]
             
         )
         return productInsertionResponse
@@ -37,7 +37,7 @@ def editParticularProduct(productDetails:dict)->dict:
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
-    
+    print('edit products ',productDetails)
     with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
         productUpdateResponse = db.update('products',
                                           ['productName','productCategory','productCostPrice','productSalePrice','productQuantity','units'],
@@ -45,6 +45,7 @@ def editParticularProduct(productDetails:dict)->dict:
                                            productDetails['productSalePrice'],productDetails['productQuantity'],productDetails['units']],
                                           'productId = ?',[productDetails['productId']]
                                           )
+        print(productUpdateResponse)
         return(productUpdateResponse)
     
 def updateProductQuantity(productDetails:dict)->dict:
@@ -230,6 +231,100 @@ def addSingleProductSale(singleProductSales: list) -> dict:
 
     return {"status": status, "log": log}
 
+# ---- the modules below are responsible for handlng users-----
+
+def createUser(userDetails:dict)->dict:
+    '''
+        this module is responsible for creation of a user 
+        @param userDetails:'entryId','timestamp','userId','userName','password',
+                            'phoneNumber','roleId','email' are the expected keys 
+        returns a dictionary with status and log 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    passwordHash = kutils.encryption.hash(userDetails['password'])
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        phoneNumberResponse = db.fetch(
+            'users',
+            ['phoneNumber'],
+            'phoneNumber = ?',
+            [userDetails['phoneNumber']],
+            limit = 1,
+            returnDicts=True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        if len(phoneNumberResponse) > 0:
+            return{'status':False, 'log':'phoneNumber already exists attached to another user please try another'}
+        userCreationResponse = db.insert(
+            'users',
+            [userDetails['entryId'],userDetails['timestamp'],userDetails['userId'],userDetails['userName'],
+             passwordHash,userDetails['phoneNumber'],userDetails['email'],userDetails['roleId']]
+        )
+    return(userCreationResponse)
+
+def login(userDetails:dict)->dict:
+    '''
+        this function is responsible for verifying credentials from the front end 
+        @param userDetails:'phoneNumber','password' are the expected keys  
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    passwordHash = kutils.encryption.hash(userDetails['password'])
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        userFetchResponse = db.fetch(
+            'users',
+            ['userId','userName','phoneNumber','password','roleId'],'phoneNumber=? and password=?',
+            [userDetails['phoneNumber'],passwordHash],
+            limit = 1,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        if len(userFetchResponse) > 0:
+            return {'status':True, 'log':userFetchResponse}
+        return{'status':False, 'log':'You have input a wrong password'}
+    
+
+def createRoles(roleDetails:dict)->dict:
+    '''
+        this module is responsible for creation of roles and adding them to the db
+        @param roleDetails:'entryId','timestamp','roleId','role','others'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        roleInsertionResponse = db.insert(
+            'roles',
+            [roleDetails['entryId'],roleDetails['timestamp'],roleDetails['roleId'],roleDetails['others']]
+        )
+        return roleInsertionResponse
+    
+def fetchRole(roleId:str)->list:
+    '''
+        this function is responsible for fetching the user role 
+        from database 
+        @param roleId:
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        roleFetchResults = db.fetch(
+            'roles',
+            ['role'],
+            'roleId = ?',
+            [roleId],
+            limit = 1,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator= False
+        )
+        return roleFetchResults
+    
+
 
 
 
@@ -287,7 +382,7 @@ def init():
                             soldBy          varchar(32) not null,
                             soldTo          varchar(32) not null,
                             amountInDebts   varchar(32) not null,
-                            payrmentStatus  varchar(32) not null,
+                            payementStatus  varchar(32) not null,
                             others           json
                 ''',
                 'customers':'''
@@ -299,6 +394,26 @@ def init():
                             customerLocation    varchar(32) not null,
                             others              json
                             
+                
+                ''',
+                'users':'''
+                            entryId             varchar(32) not null,
+                            timestamp           varchar(32) not null,
+                            userId              varchar(32) not null,
+                            userName            varchar(32) not null,
+                            password            varchar(32) not null,
+                            phoneNumber         integer(32) not null,
+                            email               varchar(32) not null,
+                            roleId              varchar(32) not null
+                            
+                
+                ''',
+                'roles':'''
+                            entryId             varchar(32) not null,
+                            timestamp           varchar(32) not null,
+                            roleId              varchar(32) not null,
+                            role                varchar(32) not null,
+                            others              json
                 
                 '''
 
@@ -312,7 +427,11 @@ def init():
             
 init()
 
+
+
 if __name__ == "__main__":
+    
+    
     product= {
         'productId':'pppp',
                             'timestamp':kutils.dates.currentTimestamp(),
@@ -363,10 +482,24 @@ if __name__ == "__main__":
                             'units':'Pairs',
         
     }
+    user = {
+        'entryId':kutils.codes.new(),
+        'timestamp':kutils.dates.currentTimestamp(),
+        'userId':kutils.codes.new(),
+        'userName':'johndoe',
+        'password':'hello123',
+        'roles':'user',
+        'email':'johndoe@gmail.com',
+        'phoneNumber':256782345678,
+        'roleId':'user'
+    }
+   
     createTables()
+    print(createUser(user))
+    # print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
-    print(fetchAllProducts())
+    # print(fetchAllProducts())
     # print(updateProductQuantity(si))
     # print(editParticularProduct(productDetails))
     # print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))

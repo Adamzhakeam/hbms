@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="../../bms/static/style.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Product Management</h1>
+
+        <!-- Register Product -->
+        <section id="register-product">
+            <h2>Register Product</h2>
+            <div class="form-group">
+                <label for="productName">Product Name</label>
+                <input type="text" id="productName" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productCostPrice">Cost Price</label>
+                <input type="number" id="productCostPrice" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productSalePrice">Sale Price</label>
+                <input type="number" id="productSalePrice" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productSerialNumber">Serial Number</label>
+                <input type="text" id="productSerialNumber" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productCategory">Category</label>
+                <input type="text" id="productCategory" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productQuantity">Quantity</label>
+                <input type="number" id="productQuantity" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="units">Units</label>
+                <input type="text" id="units" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="productImage">Product Image URL</label>
+                <input type="text" id="productImage" class="product-input" required>
+            </div>
+            <button onclick="registerProduct()">Register Product</button>
+        </section>
+
+        <!-- View All Products -->
+        <section id="view-products">
+            <h2>All Products</h2>
+            <button onclick="fetchAllProducts()">Fetch All Products</button>
+            <div id="products-list"></div>
+        </section>
+
+        <!-- Edit Product -->
+        <section id="edit-product">
+            <h2>Edit Product</h2>
+            <div class="form-group">
+                <label for="searchProductName">Product Name</label>
+                <input type="text" id="searchProductName" class="product-input" required>
+            </div>
+            <div class="form-group">
+                <label for="searchProductSerialNumber">Product Serial Number</label>
+                <input type="text" id="searchProductSerialNumber" class="product-input" required>
+            </div>
+            <button onclick="fetchSpecificProduct()">Search Product</button>
+
+            <!-- Edit Product Fields -->
+            <div id="edit-product-fields" style="display:none;">
+                <div class="form-group">
+                    <label for="editProductName">Product Name</label>
+                    <input type="text" id="editProductName" class="product-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCostPrice">Cost Price</label>
+                    <input type="number" id="editProductCostPrice" class="product-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductSalePrice">Sale Price</label>
+                    <input type="number" id="editProductSalePrice" class="product-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCategory">Category</label>
+                    <input type="text" id="editProductCategory" class="product-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductQuantity">Quantity</label>
+                    <input type="number" id="editProductQuantity" class="product-input" required>
+                </div>
+                <div class="form-group">
+                    <label for="editUnits">Units</label>
+                    <input type="text" id="editUnits" class="product-input" required>
+                </div>
+                <input type="hidden" id="editProductId">
+                <button onclick="editProduct()">Edit Product</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="../../bms/static/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Module</title>
+    <link rel="stylesheet" href="../../bms/static/style.css">
+</head>
+<body>
+    <form id="sales-form">
+        <label for="product-select">Select Product:</label>
+        <select id="product-select">
+            <option value="">Select a product</option>
+        </select>
+        <button type="button" id="add-product">Add Product</button>
+
+        <ul id="selected-products"></ul>
+
+        <label for="grand-total">Grand Total:</label>
+        <input type="number" id="grand-total" readonly>
+
+        <label for="sold-to">Sold To:</label>
+        <input type="text" id="sold-to">
+
+        <label for="payment-type">Payment Type:</label>
+        <input type="text" id="payment-type">
+
+        <label for="payment-status">Payment Status:</label>
+        <input type="text" id="payment-status">
+
+        <label for="amount-paid">Amount Paid:</label>
+        <input type="number" id="amount-paid">
+
+        <label for="others">Others:</label>
+        <textarea id="others"></textarea>
+
+        <button type="submit">Submit Sale</button>
+    </form>
+    <script src="../../bms/static/script.js"></script>
+</body>
+</html>
