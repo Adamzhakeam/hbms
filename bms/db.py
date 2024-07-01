@@ -159,12 +159,13 @@ def addSaleToDB(sales: dict) -> dict:
     '''
     dbPath = kutils.config.getValue("bmsDb/dbPath")
     dbTable = kutils.config.getValue("bmsDb/tables")
-    entryId, saleId, timestamp, grandTotal, numberOfItemsSold, soldBy,soldTo,payementType,payementStatus,amountPaid, others = sales.values()
+    # entryId, saleId, timestamp, grandTotal, numberOfItemsSold, soldBy,soldTo,payementType,payementStatus,amountPaid, others = sales.values()
 
     with kutils.db.Api(dbPath, dbTable, readonly=False)as db:
         insertSaleStatus = db.insert(
             "sales", 
-            [entryId, saleId, timestamp, grandTotal, numberOfItemsSold, soldBy,soldTo,payementType, payementStatus, amountPaid,others])
+            [sales['entryId'], sales['saleId'], sales['timestamp'], sales['grandTotal'], sales['numberOfItemsSold'], 
+             sales['soldBy'],sales['soldTo'],sales['paymentType'], sales['paymentStatus'], sales['amountPaid'],sales['others']])
         return insertSaleStatus
     
 # def addSingleProductSale(singleProductSales: list) -> dict:
@@ -210,24 +211,27 @@ def addSingleProductSale(singleProductSales: list) -> dict:
     log = ""
 
     for productSale in singleProductSales:
-        try:
-            entryId, timestamp, saleId, productId, unitPrice, units, quantity, total,others = productSale.values()
+        # try:
+            # entryId, timestamp, saleId, productId, unitPrice, units, quantity, total,others = productSale.values()
 
             with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
                 insertStatus = db.insert(
                     "productSales",
-                    [entryId, timestamp, saleId, productId, unitPrice, units, quantity, total, others]
+                    [productSale['entryId'], productSale['timestamp'], productSale['saleId'], productSale['productId'], 
+                     productSale['unitPrice'], productSale['units'], productSale['productQuantity'], productSale['total'], productSale['others']]
                 )
                 # updateProductQuantity(productSale)
                 
                 if not insertStatus['status']:
                     status = False
                     log += f"Failed to insert product sale: {productSale}\n"
+                    return {'status':status, 'log':log}
         
-        except Exception as e:
-            status = False
-            log += f"Error processing product sale {productSale}: {e}\n"
-        print(updateProductQuantity(productSale))
+        # # except Exception as e:
+        #     status = False
+        #         log += f"Error processing product sale {productSale}: {e}\n"
+        #     return {'status':status, 'log':log}
+        # print(updateProductQuantity(productSale))
 
     return {"status": status, "log": log}
 
@@ -359,7 +363,7 @@ def init():
                             soldBy              varchar(32) not null,
                             soldTo              varchar(32) not null,
                             paymentType         varchar(32) not null,
-                            payementStatus      varchar(32) not null,
+                            paymentStatus      varchar(32) not null,
                             amountPaid          varchar(32) not null,
                             others               json 
             ''',
@@ -474,10 +478,10 @@ if __name__ == "__main__":
     ]
     productDetails = {       
                             'productId':'dddd',
-                            'productName':'angeleyes',
-                            'productCategory':'custom lights',
-                            'productCostPrice':25000,
-                            'productSalePrice':45000,
+                            'productName':'shocks',
+                            'productCategory':'premium',
+                            'productCostPrice':200000,
+                            'productSalePrice':300000,
                             'productQuantity':20,
                             'units':'Pairs',
         
@@ -495,10 +499,10 @@ if __name__ == "__main__":
     }
    
     createTables()
-    print(createUser(user))
+    # print(createUser(user))
     # print(login(user))
-    # print(addSingleProductSale(singleProductSales))
-    # print(insertProductIntoDb(product))
+    print(addSingleProductSale(singleProductSales))
+    print(insertProductIntoDb(product))
     # print(fetchAllProducts())
     # print(updateProductQuantity(si))
     # print(editParticularProduct(productDetails))

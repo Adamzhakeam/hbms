@@ -142,6 +142,10 @@ def handleEditProduct():
     return jsonify(editProductValidationResponse)
 
 # --- the routes below are responsible for handling database operations of sales
+'''
+    this module is responsible for handling routes for the sales module 
+    these include these include fetching,editing,deleting and adding
+'''
 @app.route('/addSale', methods=['POST'])
 def handleAddSale():
     '''
@@ -151,7 +155,7 @@ def handleAddSale():
     payload = request.get_json()
 
     payload['entryId'] = kutils.codes.new()
-    payload['saleId'] = kutils.codes.new()
+    payload['saleId'] = 'saleId'+kutils.codes.new()
     payload['timestamp'] = kutils.dates.currentTimestamp()
 
     payloadStructure = {
@@ -177,28 +181,42 @@ def handleAddSale():
                     'status': False,
                     'log': f'The value for {key} is missing. Please provide it.'
                 })
-        
+                
+        print('addsalepayload',payload)
         addSaleResponse = addSaleToDB(payload)
         
         if not addSaleResponse['status']:
             return jsonify(addSaleResponse)
+        print('!!!!!!!!!!!!!!!!===>patch',payload['saleId'])
+        return {'status':True,'log':'sale added succesfully','saleId':payload['saleId']}
     
-    return jsonify(addSaleResponse)
+    return jsonify(saleValidationResponse)
 
 @app.route('/addSingleProductSale', methods=['POST'])
 def handleAddSingleProductSale():
     '''
-        This endpoint is responsible for adding individual product sales to the database.
+    This endpoint is responsible for adding individual product sales to the database.
     '''
     from db import addSingleProductSale
+    
+    
     payload = request.get_json()
-    print('payload',payload)
+    # workingSaleId = handleAddSale()
+    # print(workingSaleId)
+    # payload['saleId'] = workingSaleId['saleId']
+    print('Received payload:', payload)  # Debug: Print received payload
+
+    if not payload:
+        return jsonify({'status': False, 'log': 'No data provided'}), 400
+    
     # Assuming payload is a list of single product sales
     for productSale in payload:
         productSale['entryId'] = kutils.codes.new()
         productSale['timestamp'] = kutils.dates.currentTimestamp()
-
-    payloadStructure = {
+    
+    print('Payload after adding entryId and timestamp:', payload)  # Debug: Print modified payload
+    
+    payloadStructure = [{
         'entryId': kutils.config.getValue('bmsDb/entryId'),
         'timestamp': kutils.config.getValue('bmsDb/timestamp'),
         'saleId': kutils.config.getValue('bmsDb/saleId'),
@@ -208,25 +226,29 @@ def handleAddSingleProductSale():
         'productQuantity': kutils.config.getValue('bmsDb/productQuantity'),
         'total': kutils.config.getValue('bmsDb/total'),
         'others': kutils.config.getValue('bmsDb/others')
-    }
-
-    singleProductSaleValidationResponse = kutils.structures.validator.validate(payload, payloadStructure)
-
-    if singleProductSaleValidationResponse['status']:
-        for productSale in payload:
-            for key in productSale:
-                if not productSale[key]:
-                    return jsonify({
-                        'status': False,
-                        'log': f'The value for {key} is missing in one of the products. Please provide it.'
-                    })
-        
-        addProductSalesResponse = addSingleProductSale(payload)
-        
-        if not addProductSalesResponse['status']:
-            return jsonify(addProductSalesResponse)
+    }]
     
-    return jsonify(addProductSalesResponse)
+    singleProductSaleValidationResponse = kutils.structures.validator.validate(payload, payloadStructure)
+    print('Validation response:', singleProductSaleValidationResponse)  # Debug: Print validation response
+    
+    if not singleProductSaleValidationResponse['status']:
+        return jsonify(singleProductSaleValidationResponse)
+    
+    for productSale in payload:
+        for key in productSale:
+            if not productSale[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing in one of the products. Please provide it.'
+                }), 400
+    
+    addProductSalesResponse = addSingleProductSale(payload)
+    print('Database insertion response:', addProductSalesResponse)  # Debug: Print DB response
+    
+    if not addProductSalesResponse['status']:
+        return jsonify(addProductSalesResponse)
+    
+    return jsonify({'status': True, 'log': 'Products added successfully!'})
 
 # ------the module below is responsible fo handling user and roles  related endpoints 
 
@@ -335,9 +357,9 @@ def init():
             'total':int,
             'grandTotal':int,
             'amountPaid':int,
-            'payementType':str,
-            'payementStatus':str,
-            'numberOfItemsSold':str,
+            'paymentType':str,
+            'paymentStatus':str,
+            'numberOfItemsSold':int,
             'userId':str,
             'userName':str,
             'phoneNumber':str,
@@ -346,7 +368,8 @@ def init():
             'roleId':str,
             'password':str,
             'role':str,
-            'others':str,
+            'others':dict,
+            'saleId':str,
             'SECRETE_KEY':os.urandom(24),
             'SESSION_TYPE':'filesystem',
             'SESSION_PERMANENT':False,

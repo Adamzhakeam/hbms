@@ -59,98 +59,167 @@ button:hover {
 
 /* ----the section below is for sales css  */
 /* style.css */
-#sales {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+/* Basic styles for container */
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body styles */
+#sales {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
 }
 
-.container {
-    background-color: #fff;
+/* Sales container styles */
+.sales-container {
+    width: 100%;
+    max-width: 480px;
     padding: 20px;
+    background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    width: 90%;
-    max-width: 600px;
 }
 
-.title {
-    text-align: center;
-    color: #2c3e50;
-}
-
-.product-selection {
+/* Form styles */
+.sales-form {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+}
+
+.sales-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333333;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    color: #555555;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #dddddd;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    text-align: center;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+th, td {
+    border: 1px solid #dddddd;
+    padding: 8px;
+    text-align: center;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+@media (max-width: 480px) {
+    .sales-container {
+        padding: 15px;
+    }
+
+    button {
+        padding: 10px 15px;
+        font-size: 14px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+        padding: 8px;
+        font-size: 14px;
+    }
+
+    th, td {
+        padding: 6px;
+    }
+}
+
+/* ...existing CSS... */
+
+button.remove {
+    background-color: #ff4d4d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    text-align: center;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button.remove:hover {
+    background-color: #ff1a1a;
+}
+.sales-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.sales-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
     margin-bottom: 20px;
 }
 
-.dropdown {
-    width: 70%;
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-.btn-add {
-    padding: 8px 16px;
-    background-color: #2c3e50;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.products-list h2 {
-    color: #2c3e50;
-}
-
-.products-list ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.products-list li {
+.flex-group {
     display: flex;
-    justify-content: space-between;
-    padding: 8px;
-    border-bottom: 1px solid #ccc;
+    gap: 20px;
 }
 
-.total-amount {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.flex-group > div {
+    flex: 1;
 }
 
-.btn-submit {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    background-color: #2c3e50;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-@media (max-width: 600px) {
-    .product-selection {
+@media (max-width: 768px) {
+    .flex-group {
         flex-direction: column;
     }
-
-    .dropdown, .btn-add {
-        width: 100%;
-        margin-bottom: 10px;
-    }
 }
+
+
+/* ...existing CSS... */
+
 
 /* ---this is the index.hmtl css modules below */
 /* Reset default margin and padding */

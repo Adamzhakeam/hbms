@@ -4,38 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Module</title>
-    <link rel="stylesheet" href="../../bms/static/style.css">
+    <link rel="stylesheet" href="../../bms/static/style.css"> <!-- Link to your CSS file -->
+    <script src="../../bms/static/script.js" defer></script> <!-- Link to your JavaScript file -->
 </head>
-<body>
-    <form id="sales-form">
-        <label for="product-select">Select Product:</label>
-        <select id="product-select">
-            <option value="">Select a product</option>
-        </select>
-        <button type="button" id="add-product">Add Product</button>
+<body id="sales">
+    <div class="sales-container">
+        <form id="salesForm" class="sales-form">
+            <h2>Make a Sale</h2>
 
-        <ul id="selected-products"></ul>
+            <div class="form-group">
+                <label for="product">Select Product</label>
+                <input type="text" id="productSearch" placeholder="Search product...">
+                <select id="productDropdown" required>
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
 
-        <label for="grand-total">Grand Total:</label>
-        <input type="number" id="grand-total" readonly>
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" id="quantity" name="quantity" min="1" placeholder="Enter quantity" required>
+            </div>
 
-        <label for="sold-to">Sold To:</label>
-        <input type="text" id="sold-to">
+            <div class="form-group flex-group">
+                <div>
+                    <label for="paymentType">Payment Type</label>
+                    <select id="paymentType" name="paymentType" required>
+                        <option value="cash">Cash</option>
+                        <option value="mobileMoney">Mobile Money</option>
+                        <option value="bankTransfer">Bank Transfer</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="paymentStatus">Payment Status</label>
+                    <select name="paymentStatus" id="paymentStatus" required>
+                        <option value="cleared">Cleared</option>
+                        <option value="partialPayment">Partial Payment</option>
+                    </select>
+                </div>
+            </div>
 
-        <label for="payment-type">Payment Type:</label>
-        <input type="text" id="payment-type">
+            <div class="form-group">
+                <label for="soldTo">Sold To</label>
+                <input type="text" id="soldTo" name="soldTo" placeholder="Enter Name" required>
+            </div>
 
-        <label for="payment-status">Payment Status:</label>
-        <input type="text" id="payment-status">
+            <div class="form-group">
+                <label for="amountPaid">Amount Paid</label>
+                <input type="number" id="amountPaid" name="amountPaid" placeholder="Enter Amount" required>
+            </div>
 
-        <label for="amount-paid">Amount Paid:</label>
-        <input type="number" id="amount-paid">
-
-        <label for="others">Others:</label>
-        <textarea id="others"></textarea>
-
-        <button type="submit">Submit Sale</button>
-    </form>
-    <script src="../../bms/static/script.js"></script>
+            <button type="button" id="addProduct">Add Product</button>
+            <h3>Selected Products</h3>
+            <table id="selectedProducts">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Sale Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Selected products will be added here dynamically -->
+                </tbody>
+            </table>
+            <div class="form-group">
+                <label for="grandTotal">Grand Total:</label>
+                <span id="grandTotal">0</span>
+            </div>
+            <button type="submit">Submit Sale</button>
+        </form>
+    </div>
 </body>
 </html>
