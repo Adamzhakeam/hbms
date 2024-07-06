@@ -151,7 +151,7 @@ def handleAddSale():
     '''
         This endpoint is responsible for adding an entire sale to the database.
     '''
-    from db import addSaleToDB
+    from db import addSaleToDB,addCreditDetailsToDb
     payload = request.get_json()
 
     payload['entryId'] = kutils.codes.new()
@@ -187,7 +187,9 @@ def handleAddSale():
         
         if not addSaleResponse['status']:
             return jsonify(addSaleResponse)
-        print('!!!!!!!!!!!!!!!!===>patch',payload['saleId'])
+        # print('!!!!!!!!!!!!!!!!===>patch',payload['saleId'])
+        addCreditDetailsResponse = addCreditDetailsToDb(payload)
+        print('cerdit',addCreditDetailsResponse)
         return {'status':True,'log':'sale added succesfully','saleId':payload['saleId']}
     
     return jsonify(saleValidationResponse)

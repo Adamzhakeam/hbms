@@ -220,7 +220,7 @@ def addSingleProductSale(singleProductSales: list) -> dict:
                     [productSale['entryId'], productSale['timestamp'], productSale['saleId'], productSale['productId'], 
                      productSale['unitPrice'], productSale['units'], productSale['productQuantity'], productSale['total'], productSale['others']]
                 )
-                # updateProductQuantity(productSale)
+                updateProductQuantity(productSale)
                 
                 if not insertStatus['status']:
                     status = False
@@ -328,9 +328,151 @@ def fetchRole(roleId:str)->list:
         )
         return roleFetchResults
     
+# ---the modules below are responsible for handling customers
+'''
+    this module is responsible for handling customers adding them to the database and 
+    fetching their information from there database
+'''
+def addCustomerToDb(customerDetails:dict)->dict:
+    '''
+        this function inserts customer into database 
+        @param customerDetails:'entryId','timestamp','customerId',customerName',
+                                'customerPhoneNumber','customerLocation','others'
+                                are the expected keys
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+         customerFetchResponse = db.fetch(
+            'customers',
+            ['customerPhoneNumber'],
+            'customerPhoneNumber = ?',
+            [customerDetails['customerPhoneNumber']],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+         if len(customerFetchResponse) > 0:
+             return{'status':False, 'log':f'customer already registered using this {customerDetails["customerPhoneNumber"]}'}
+            
+         customerInsertionResponse = db.insert(
+            'customers',
+            [customerDetails['entryId'],customerDetails['timestamp'],customerDetails['customerId'],
+             customerDetails['customerName'],customerDetails['customerPhoneNumber'],customerDetails['customerLocation'],customerDetails['others']]
+        )
+         return customerInsertionResponse
+    
+def fetchCustomer(phoneNumber:int)->list:
+    '''
+        this function is responsible for fetching customer from db
+        by use of phone number
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        customerFetchResponse = db.fetch(
+            'customers',
+            ['*'],
+            'customerPhoneNumber = ?',
+            [phoneNumber],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        return customerFetchResponse
+    
+def fetchCustomerById(customerId:str)->list:
+    '''
+        this function is responsible for fetching customer from db
+        by use of customerId
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        customerFetchResponse = db.fetch(
+            'customers',
+            ['*'],
+            'customerId = ?',
+            [customerId],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        return customerFetchResponse
 
+# ----the module below handles product categories----
+'''
+    this module is responsible for adding and fetching 
+    product categories to and from the database 
+'''
+def addCategoryToDb(categoryDetails:dict)->dict:
+    '''
+        this function is responsible for adding category to Db
+        @param categoryDetails:'entryId','timestamp','categoryId','category',others are the expected keys
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+        categoryFetchResponse = db.fetch(
+            'categories',
+            ['category'],
+            'category = ?',
+            [categoryDetails['category']],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        if len(categoryFetchResponse) > 0:
+            return{'status':False, 'log':f'{categoryDetails["category"]} has already been registered'}
+    
 
+        categoryInsertionResponse = db.insert(
+            'categories',
+            [categoryDetails['entryId'],categoryDetails['timestamp'],categoryDetails['categoryId'],
+             categoryDetails['category'],categoryDetails['others']]
+        )
+    return categoryInsertionResponse
 
+def fetchCategory(categoryName:str)->list:
+    '''
+        this function is responsible for adding category to Db
+        @param categoryName
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+         categoryFetchResponse = db.fetch(
+            'categories',
+            ['category'],
+            'category = ?',
+            [categoryName],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+    return categoryFetchResponse
+
+# ---the module below is responsible for handling credit and debtors ---
+'''
+    this module is responsible for adding and fetching creditors 
+    according to the sale information
+'''
+def addCreditDetailsToDb(creditDetails:dict)->dict:
+    '''
+        this function is responsible for adding credit details to the db
+        @param creditDetails:'saleId','soldTo','amountInDebt','paymentStatus',others
+                            are the expected keys
+    '''
+    
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    entryId = 'entryId'+kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    creditId = 'creditId'+kutils.codes.new()
+    print('dtls',creditDetails)
+    print(entryId,timestamp,creditId)
+    amountInDebt = creditDetails['grandTotal'] - creditDetails['amountPaid']
+    print('amountindebt',amountInDebt)
+    with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+        if creditDetails['paymentStatus'] == 'partialPayment':
+            creditInsertionResponse = db.insert(
+                'credits',
+                [entryId,timestamp,creditId,creditDetails['saleId'],creditDetails['soldBy'],creditDetails['soldTo'],
+                 amountInDebt,creditDetails['paymentStatus'],creditDetails['others']]
+            )
+            return creditInsertionResponse
+        return {'status':False,'log':''}
 
              
 def init():
@@ -419,6 +561,14 @@ def init():
                             role                varchar(32) not null,
                             others              json
                 
+                ''',
+                'categories':'''
+                                entryId         varchar(32) not null,
+                                timestamp       varchar(32) not null,
+                                categoryId     varchar(32) not null,
+                                category        varchar(32) not null,
+                                others          json
+                                
                 '''
 
         }
@@ -501,8 +651,8 @@ if __name__ == "__main__":
     createTables()
     # print(createUser(user))
     # print(login(user))
-    print(addSingleProductSale(singleProductSales))
-    print(insertProductIntoDb(product))
+    # print(addSingleProductSale(singleProductSales))
+    # print(insertProductIntoDb(product))
     # print(fetchAllProducts())
     # print(updateProductQuantity(si))
     # print(editParticularProduct(productDetails))
