@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
         products.forEach(product => {
             const option = document.createElement('option');
             option.value = product.productId;
-            option.textContent = `${product.productName} - ${product.productSalePrice}`;
+            option.textContent = `${product.productName} - ${product.productSalePrice} - ${product.productCategory}`;
             productDropdown.appendChild(option);
         });
     }
@@ -141,6 +141,18 @@ document.addEventListener('DOMContentLoaded', () => {
         populateProductDropdown(filteredProducts);
     });
 
+    // Populate quantity field based on selected product
+    productDropdown.addEventListener('change', () => {
+        const selectedProductId = productDropdown.value;
+        const selectedProduct = products.find(product => product.productId === selectedProductId);
+
+        if (selectedProduct) {
+            quantityInput.value = selectedProduct.productQuantity;
+        } else {
+            quantityInput.value = '';
+        }
+    });
+
     // Add product to the selected products table
     addProductButton.addEventListener('click', () => {
         const selectedProductId = productDropdown.value;
@@ -149,6 +161,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!selectedProduct || isNaN(quantity) || quantity <= 0) {
             alert('Please select a valid product and quantity.');
+            return;
+        }
+
+        if (quantity > selectedProduct.productQuantity) {
+            alert('You cannot select more than the available quantity.');
             return;
         }
 

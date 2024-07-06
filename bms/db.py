@@ -52,7 +52,7 @@ def updateProductQuantity(productDetails:dict)->dict:
     '''
         this module is responsible for updating product quantity after making a sale 
         it returns a dictionary if with keys 'status' and 'log' if operation is successful it returns status as True and 
-        if operation i snot successful it returns False as status and the log contains the error 
+        if operation is not successful it returns False as status and the log contains the error 
         @param productDetails:->'productId' and 'Quantity' are the expected keys in the dictionary
      '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
