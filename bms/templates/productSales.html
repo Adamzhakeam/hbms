@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Sales</title>
+    <link rel="stylesheet" href="../../bms/static/style.css">
+</head>
+<body id="productDetails">
+    <div class="container">
+        <h1>Product Sales Data</h1>
+        <div class="buttons">
+            <button id="fetchAllProductSalesBtn">Fetch All Product Sales</button>
+            <button id="fetchSpecificProductSalesBtn">Fetch Product Sales on Specific Date</button>
+            <button id="fetchProdutSalesFromToBtn">Fetch Products Sales From-To</button>
+        </div>
+        <table id="salesTable">
+            <thead>
+                <tr>
+                    <th>Sale ID</th>
+                    <th>Product ID</th>
+                    <th>Unit Price</th>
+                    <th>Quantity</th>
+                    <th>Units</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody">
+                <!-- Sales data will be inserted here -->
+            </tbody>
+        </table>
+    </div>
+    <script src="../../bms/static/productSales.js"></script>
+</body>
+</html>

@@ -1,6 +1,5 @@
 from flask import Flask,request,jsonify,session, redirect, url_for
 from functools import wraps
-# from flask_Ses
 from flask_cors import CORS
 import kisa_utils as kutils
 from flask_session import Session
@@ -102,6 +101,28 @@ def handleFetchSpecificProduct():
     response = fetchSpecificProduct(productDetails)
     
     return jsonify(response)
+
+@app.route('/fetchSpecificProductById', methods=['POST'])
+
+def handleFetchSpecificProductById():
+    from db import fetchSpecificProductById
+    '''
+        This endpoint is responsible for fetching a specific product from the database.
+    '''
+    payload = request.get_json()
+    productDetails = {
+        # 'productName': payload.get('productName'),
+        'productId': payload.get('productId')
+    }
+    
+    if not productDetails['productId']:
+        return jsonify({'status': False, 'log': 'Product name and productId are required'}), 400
+
+    response = fetchSpecificProductById(productDetails)
+    print(response)
+    
+    return jsonify(response)
+
 
 @app.route('/editProduct',methods=['POST'])
 @loginRequired('admin')
@@ -305,6 +326,58 @@ def handleAddSingleProductSale():
     
     return jsonify({'status': True, 'log': 'Products added successfully!'})
 
+@app.route('/fetchAllProductSales', methods=['POST'])
+def handleFetchAllProductSales():
+    from db import fetchAllProductSales
+    '''
+        This endpoint is responsible for fetching all product sales from the database.
+    '''
+    response = fetchAllProductSales()
+    
+    return jsonify(response)
+
+@app.route('/fetchSpecificProductSales', methods=['POST'])
+
+def handleFetchProductSaleOnSpecificDate():
+    from db import fetchSpecificProductSale
+    '''
+        This endpoint is responsible for fetching a specific sales on a specific date from the database.
+    '''
+    payload = request.get_json()
+    saleDetails = {
+        'saleDate': payload.get('saleDate'),
+        
+    }
+    
+    if not saleDetails['saleDate']:
+        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+
+    response = fetchSpecificProductSale(saleDetails)
+    
+    return jsonify(response)
+@app.route('/fetchSpecificProductSalesFromTo', methods=['POST'])
+
+def handleFetchProductSaleOnSpecificDateFromTo():
+    from db import fetchSpecificProductSalesFromTo
+    '''
+        This endpoint is responsible for fetching a specific sales on a specific date from the database.
+    '''
+    payload = request.get_json()
+    saleDetails = {
+        'dateFrom': payload.get('dateFrom'),
+        'dateTo':payload.get('dateTo')
+        
+    }
+    
+    if not saleDetails['saleDate']:
+        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+
+    response = fetchSpecificProductSalesFromTo(saleDetails)
+    
+    return jsonify(response)
+
+
+
 # ------the module below is responsible fo handling user and roles  related endpoints 
 
 @app.route('/addUser',methods=['POST'])
@@ -426,7 +499,7 @@ def init():
             'role':str,
             'others':dict,
             'saleId':str,
-            'SECRETE_KEY':os.urandom(24),
+            'SECRETE_KEY':kutils.codes.new(),
             'SESSION_TYPE':'filesystem',
             'SESSION_PERMANENT':False,
             'SESSION_USER_SIGNER':True

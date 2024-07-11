@@ -78,7 +78,7 @@ def updateProductQuantity(productDetails:dict)->dict:
 def fetchSpecificProduct(productDetails:dict)->dict:
     '''
         this module is responsible for fetching for a specific product from the 
-        database table products
+        database table products 
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
@@ -89,7 +89,7 @@ def fetchSpecificProduct(productDetails:dict)->dict:
              'units','productSerialNumber','productImage'],
             'productName = ? and productSerialNumber = ?',
             [productDetails['productName'],productDetails['productSerialNumber']],
-            limit = 10,
+            limit = 100,
             returnDicts= True,
             returnNamespaces= False,
             parseJson= False,
@@ -104,6 +104,36 @@ def fetchSpecificProduct(productDetails:dict)->dict:
     return {'status':True,
                 'log':productList
                 }
+def fetchSpecificProductById(productDetails:dict)->dict:
+    '''
+        this module is responsible for fetching for a specific product from the 
+        database table products by Id 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        productList = db.fetch(
+            'products',
+            ['productName','productCategory','productCostPrice','productSalePrice','productSalePrice','productQuantity',
+             'units','productSerialNumber','productImage'],
+            'productId = ?',
+            [productDetails['productId']],
+            limit = 1,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson= False,
+            returnGenerator= False
+        )
+    if not len(productList) :
+        
+            return {
+                'status':False,
+                'log':'No results Found'
+            }
+    return {'status':True,
+                'log':productList
+                }
+
 
 def fetchAllProducts()->dict:
     '''
@@ -296,7 +326,7 @@ def addSingleProductSale(singleProductSales: list) -> dict:
                 insertStatus = db.insert(
                     "productSales",
                     [productSale['entryId'], productSale['timestamp'], productSale['dateSold'],productSale['saleId'], productSale['productId'], 
-                     productSale['unitPrice'], productSale['units'], productSale['productQuantity'], productSale['total'], productSale['others']]
+                     productSale['unitPrice'], productSale['productQuantity'], productSale['units'], productSale['total'], productSale['others']]
                 )
                 updateProductQuantity(productSale)
                 
@@ -551,6 +581,99 @@ def addCreditDetailsToDb(creditDetails:dict)->dict:
             )
             return creditInsertionResponse
         return {'status':False,'log':''}
+    
+    # -----the module below is responsible for fetching all the sales of a particular product ----
+def fetchAllProductSales():
+    '''
+        this function is responsible for fetching product sales details 
+        from table product sales 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+         productSalesFetchResponse = db.fetch(
+            'productSales',
+            ['*'],
+            '',
+            [],limit = 100,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+         if len(productSalesFetchResponse) == 0:
+             return{
+                 'status':False,
+                 'log':'You have not made any sales yet'
+             }
+         return {
+             'status':True,
+             'log':productSalesFetchResponse
+        
+        }
+         
+def fetchSpecificProductSale(saleDetails:dict) -> list:
+    '''
+        this function is responsible for fetching sales from database of a particular date
+        @param date
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    date = saleDetails['saleDate']
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificProductSaleFetchResponse = db.fetch(
+            'productSales',
+            ['*'],
+            'dateSold = ?',[date],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+    if len(specificProductSaleFetchResponse) == 0:
+        return{
+            'status':False,
+            'log':f'there were no Products Sold on this day {date} '
+        }
+    return {
+        'status':True,
+        'log':specificProductSaleFetchResponse
+    }
+    
+def fetchSpecificProductSalesFromTo(saleDates:dict) -> list:
+    '''
+        this function is responsible for fetching sales between a particular period of time 
+        @ param saleDates:'dateFrom','dateTo' are the expected keys
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    dateFrom = saleDates['dateFrom']
+    dateTo = saleDates['dateTo']
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificProductSaleFetchResponse = db.fetch(
+            'productSales',
+            ['*'],
+            'dateSold >= ? and dateSold <=?',[dateFrom,dateTo],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+    if len(specificProductSaleFetchResponse) == 0:
+        return{
+            'status':False,
+            'log':specificProductSaleFetchResponse
+        }
+        
+    return {
+            'status':True,
+            'log':specificProductSaleFetchResponse
+        }
+    
+
+        
+
+        
 
              
 def init():
