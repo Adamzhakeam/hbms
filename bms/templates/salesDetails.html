@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Details</title>
+    <link rel="stylesheet" href="../../bms/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sales Details</h1>
+        <button id="fetchAllSalesBtn">Fetch All Sales</button>
+        <button id="fetchSpecificSalesBtn">Fetch Specific Sales</button>
+        <button id="fetchSalesFromToBtn">Fetch Sales From-To</button>
+
+        <div id="salesTableContainer">
+            <table id="salesTable">
+                <thead>
+                    <tr>
+                        <th>SoldBy</th>
+                        <th>Number Of Items Sold</th>
+                        <th>expected Amount</th>
+                        <th>Amount Paid</th>
+                        <th>Payment Type</th>
+                        <th>Payment Status</th>
+                    </tr>
+                </thead>
+                <tbody id="salesTableBody">
+                    <!-- Sales data will be appended here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="../../bms/static/salesDetails.js"></script>
+</body>
+</html>

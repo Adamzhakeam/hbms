@@ -157,11 +157,13 @@ def handleAddSale():
     payload['entryId'] = kutils.codes.new()
     payload['saleId'] = 'saleId'+kutils.codes.new()
     payload['timestamp'] = kutils.dates.currentTimestamp()
+    payload['dateSold'] = kutils.dates.today()
 
     payloadStructure = {
         'entryId': kutils.config.getValue('bmsDb/entryId'),
         'saleId': kutils.config.getValue('bmsDb/saleId'),
         'timestamp': kutils.config.getValue('bmsDb/timestamp'),
+        'dateSold': kutils.config.getValue('bmsDb/dateSold'),
         'grandTotal': kutils.config.getValue('bmsDb/grandTotal'),
         'numberOfItemsSold': kutils.config.getValue('bmsDb/numberOfItemsSold'),
         'soldBy': kutils.config.getValue('bmsDb/soldBy'),
@@ -194,6 +196,56 @@ def handleAddSale():
     
     return jsonify(saleValidationResponse)
 
+@app.route('/fetchAllSales', methods=['POST'])
+def handleFetchAllSales():
+    from db import fetchAllSales
+    '''
+        This endpoint is responsible for fetching all sales from the database.
+    '''
+    response = fetchAllSales()
+    
+    return jsonify(response)
+
+@app.route('/fetchSpecificSales', methods=['POST'])
+
+def handleFetchSaleOnSpecificDate():
+    from db import fetchSpecificSale
+    '''
+        This endpoint is responsible for fetching a specific sales on a specific date from the database.
+    '''
+    payload = request.get_json()
+    saleDetails = {
+        'saleDate': payload.get('saleDate'),
+        
+    }
+    
+    if not saleDetails['saleDate']:
+        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+
+    response = fetchSpecificSale(saleDetails)
+    
+    return jsonify(response)
+@app.route('/fetchSpecificSalesFromTo', methods=['POST'])
+
+def handleFetchSaleOnSpecificDateFromTo():
+    from db import fetchSpecificSalesFromTo
+    '''
+        This endpoint is responsible for fetching a specific sales on a specific date from the database.
+    '''
+    payload = request.get_json()
+    saleDetails = {
+        'dateFrom': payload.get('dateFrom'),
+        'dateTo':payload.get('dateTo')
+        
+    }
+    
+    if not saleDetails['saleDate']:
+        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+
+    response = fetchSpecificSalesFromTo(saleDetails)
+    
+    return jsonify(response)
+
 @app.route('/addSingleProductSale', methods=['POST'])
 def handleAddSingleProductSale():
     '''
@@ -215,6 +267,7 @@ def handleAddSingleProductSale():
     for productSale in payload:
         productSale['entryId'] = kutils.codes.new()
         productSale['timestamp'] = kutils.dates.currentTimestamp()
+        productSale['dateSold'] = kutils.dates.today()
     
     print('Payload after adding entryId and timestamp:', payload)  # Debug: Print modified payload
     
@@ -362,6 +415,7 @@ def init():
             'paymentType':str,
             'paymentStatus':str,
             'numberOfItemsSold':int,
+            'dateSold':str,
             'userId':str,
             'userName':str,
             'phoneNumber':str,

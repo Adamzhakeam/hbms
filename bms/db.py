@@ -164,9 +164,87 @@ def addSaleToDB(sales: dict) -> dict:
     with kutils.db.Api(dbPath, dbTable, readonly=False)as db:
         insertSaleStatus = db.insert(
             "sales", 
-            [sales['entryId'], sales['saleId'], sales['timestamp'], sales['grandTotal'], sales['numberOfItemsSold'], 
+            [sales['entryId'], sales['saleId'], sales['timestamp'],sales['dateSold'], sales['grandTotal'], sales['numberOfItemsSold'], 
              sales['soldBy'],sales['soldTo'],sales['paymentType'], sales['paymentStatus'], sales['amountPaid'],sales['others']])
         return insertSaleStatus
+    
+def fetchSpecificSale(saleDetails:dict) -> list:
+    '''
+        this function is responsible for fetching sales from database of a particular date
+        @param date
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    date = saleDetails['saleDate']
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificSaleFetchResponse = db.fetch(
+            'sales',
+            ['*'],
+            'dateSold = ?',[date],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        return {
+            'status':True,
+            'log':specificSaleFetchResponse
+        }
+    
+def fetchSpecificSalesFromTo(saleDates:dict) -> list:
+    '''
+        this function is responsible for fetching sales between a particular period of time 
+        @ param saleDates:'dateFrom','dateTo' are the expected keys
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    dateFrom = saleDates['dateFrom']
+    dateTo = saleDates['dateTo']
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificSaleFetchResponse = db.fetch(
+            'sales',
+            ['grandTotal','numberOfItems','soldBy','soldTo','paymentType','paymentStatus','amountPaid'],
+            'dateSold >= ? and dateSold <=?',[dateFrom,dateTo],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        return {
+            'status':True,
+            'log':specificSaleFetchResponse
+        }
+    
+
+    
+def fetchAllSales()->list:
+    '''
+    this function is responsible for fetching all the sales from the database
+    it returns a list of the all the sales 
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    # print(dbPath)
+
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        salesFetchResponse = db.fetch(
+            'sales',
+            ['*'],
+            '',[],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        return {
+            'status':True,
+            'log':salesFetchResponse
+        }
     
 # def addSingleProductSale(singleProductSales: list) -> dict:
 #     '''
@@ -217,7 +295,7 @@ def addSingleProductSale(singleProductSales: list) -> dict:
             with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
                 insertStatus = db.insert(
                     "productSales",
-                    [productSale['entryId'], productSale['timestamp'], productSale['saleId'], productSale['productId'], 
+                    [productSale['entryId'], productSale['timestamp'], productSale['dateSold'],productSale['saleId'], productSale['productId'], 
                      productSale['unitPrice'], productSale['units'], productSale['productQuantity'], productSale['total'], productSale['others']]
                 )
                 updateProductQuantity(productSale)
@@ -500,6 +578,7 @@ def init():
                             entryId             varchar(32) not null,
                             saleId              varchar(32) not null,
                             timestamp           varchar(24) not null,
+                            dateSold            varchar(24) not null,
                             grandTotal          integer(32) not null,
                             numberOfItemsSold   integer(32) not null,
                             soldBy              varchar(32) not null,
@@ -512,6 +591,7 @@ def init():
                 'productSales': '''
                                 entryId     varchar(32) not null,
                                 timestamp   varchar(32) not null,
+                                dateSold    varchar(32) not null,
                                 saleId      varchar(32) not null,
                                 productId   varchar(32) not null,
                                 unitPrice   integer(32) not null,
@@ -649,6 +729,9 @@ if __name__ == "__main__":
     }
    
     createTables()
+    print(fetchSpecificSale({'saleDate':'2024-07-09'}))
+    # date = kutils.dates.today()
+    # print(date)
     # print(createUser(user))
     # print(login(user))
     # print(addSingleProductSale(singleProductSales))
