@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credits Management</title>
+    <link rel="stylesheet" href="../../bms/static/style.css">
+</head>
+<body>
+    <h1>Credits Management</h1>
+    <table id="creditsTable">
+        <thead>
+            <tr>
+                <th>Sale ID</th>
+                <th>Sold To</th>
+                <th>Amount In Debt</th>
+                <th>Payment Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="creditsTableBody">
+            <!-- Credits data will be appended here -->
+        </tbody>
+    </table>
+
+    <!-- Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Edit Credit</h2>
+            <form id="editCreditForm">
+                <label for="amountPaid">Amount Paid:</label>
+                <input type="number" id="amountPaid" name="amountPaid" required>
+                <input type="hidden" id="creditId" name="creditId">
+                <input type="hidden" id="saleId" name="saleId">
+                <input type="hidden" id="amountInDebt" name="amountInDebt">
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../bms/static/credit.js"></script>
+</body>
+</html>

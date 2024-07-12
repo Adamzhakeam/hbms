@@ -343,7 +343,7 @@ def addSingleProductSale(singleProductSales: list) -> dict:
 
     return {"status": status, "log": log}
 
-# ---- the modules below are responsible for handlng users-----
+# --#-- the modules below are responsible for handling users----- #---#--#--#-
 
 def createUser(userDetails:dict)->dict:
     '''
@@ -375,6 +375,24 @@ def createUser(userDetails:dict)->dict:
              passwordHash,userDetails['phoneNumber'],userDetails['email'],userDetails['roleId']]
         )
     return(userCreationResponse)
+
+def fetchAllUsers()->list:
+    '''
+        this function is responsible for fetching customer from db
+        by use of phone number
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        customerFetchResponse = db.fetch(
+            'users',
+            ['*'],
+            '',
+            [],limit = 100,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        return customerFetchResponse
+    
 
 def login(userDetails:dict)->dict:
     '''
@@ -435,6 +453,29 @@ def fetchRole(roleId:str)->list:
             returnGenerator= False
         )
         return roleFetchResults
+    
+def fetchAllRoles()->list:
+    '''
+        this function is responsible for fetching the user role 
+        from database 
+        @param roleId:
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        roleFetchResults = db.fetch(
+            'roles',
+            [''],
+            '',
+            [],
+            limit = 100,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator= False
+        )
+        return roleFetchResults
+
     
 # ---the modules below are responsible for handling customers
 '''
@@ -551,6 +592,23 @@ def fetchCategory(categoryName:str)->list:
         )
     return categoryFetchResponse
 
+def fetchAllCategories()->list:
+    '''
+        this function is responsible for adding category to Db
+        @param categoryName
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+         categoryFetchResponse = db.fetch(
+            'categories',
+            [''],
+            '',
+            [],limit = 100,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+    return categoryFetchResponse
+
 # ---the module below is responsible for handling credit and debtors ---
 '''
     this module is responsible for adding and fetching creditors 
@@ -582,6 +640,57 @@ def addCreditDetailsToDb(creditDetails:dict)->dict:
             return creditInsertionResponse
         return {'status':False,'log':''}
     
+def editCredit(creditDetails:dict)->dict:
+    '''
+        this module is responsible for editing the credit status of a customer 
+        @param creditDetails:'creditId','saleId','amountInDebt','amountPaid','paymentStatus' are the expected keys 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTables = kutils.config.getValue('bmsDb/tables')
+    currentDebt = creditDetails['amountInDebt'] - creditDetails['amountPaid']
+    if currentDebt  == 0:
+        creditDetails['paymentStatus'] = 'Cleared'
+        with kutils.db.Api(dbPath,dbTables, readonly = True) as db:
+            creditUpdateResponse = db.update(
+                'credits',
+                ['amountInDebts','paymentStatus'],
+                [currentDebt,creditDetails['paymentStatus']],
+                'creditId = ?',[creditDetails['creditDetails']]
+                
+            )
+        if creditUpdateResponse['status'] and currentDebt == 0:
+                saleUpdateResponse = editSale({'saleId':creditDetails['saleId'],'paymentStatus':creditDetails['paymentStatus']})
+                return saleUpdateResponse
+        return creditUpdateResponse
+
+def fetchAllCredits():
+    '''
+        this function is responsible for fetching product sales details 
+        from table product sales 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+         creditsFetchResponse = db.fetch(
+            'credits',
+            ['*'],
+            '',
+            [],limit = 100,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+         if len(creditsFetchResponse) == 0:
+             return{
+                 'status':False,
+                 'log':'You have not made any sales yet'
+             }
+         return {
+             'status':True,
+             'log':creditsFetchResponse
+        
+        }
+
+    
+        
     # -----the module below is responsible for fetching all the sales of a particular product ----
 def fetchAllProductSales():
     '''
@@ -601,7 +710,7 @@ def fetchAllProductSales():
          if len(productSalesFetchResponse) == 0:
              return{
                  'status':False,
-                 'log':'You have not made any sales yet'
+                 'log':'You have not any debtors yet'
              }
          return {
              'status':True,
@@ -670,6 +779,23 @@ def fetchSpecificProductSalesFromTo(saleDates:dict) -> list:
             'log':specificProductSaleFetchResponse
         }
     
+def editSale(saleDetails:dict)->dict:
+    '''
+        this function is responsible for updating a specific sale 
+        by the sale Id 
+        @param saleDetails: 'saleId','paymentStatus' are the expected keys
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        salesUpdateResponse = db.update(
+            'sales',
+            ['paymentStatus'],
+            [saleDetails['paymentStatus']],
+            ['saleId = ?'],
+            [saleDetails['saleId']]
+        )
+        return salesUpdateResponse
 
         
 
@@ -731,7 +857,7 @@ def init():
                             soldBy          varchar(32) not null,
                             soldTo          varchar(32) not null,
                             amountInDebts   varchar(32) not null,
-                            payementStatus  varchar(32) not null,
+                            paymentStatus  varchar(32) not null,
                             others           json
                 ''',
                 'customers':'''

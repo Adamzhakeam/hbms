@@ -399,7 +399,7 @@ def handleAdduser():
         'password':kutils.config.getValue('bmsDb/password'),
         'email':kutils.config.getValue('bmsDb/email'),
         'phoneNumber':kutils.config.getValue('bmsDb/phoneNumber'),
-        # 'roles':kutils.config.getValue('bmsDb/roles'),
+        'roles':kutils.config.getValue('bmsDb/roles'),
         'roleId':kutils.config.getValue('bmsDb/roleId')
     }
     validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
@@ -418,6 +418,14 @@ def handleAdduser():
             return jsonify(createUserResponse)
     
     return jsonify(validationResponse)
+
+@app.route('/fetchAllUsers',methods=['POST'])
+def handleFetchAllUsers():
+    from db import fetchAllUsers
+    
+    response = fetchAllUsers()
+    return jsonify(response)
+
 @app.route('/login',methods=['POST'])
 def handlelogin():
     from db import login
@@ -462,6 +470,154 @@ def handleLogoutUser():
     session.clear()
     return jsonify({'status':True, 'log':'Logged Out Successfully'}) 
 
+# ---the module below is responsible for handling all the credit endpoints
+# -------module for credit endpoints-----------
+
+@app.route('/fetchAllCredits',methods=['POST'])
+def handleFetchAllCredits():
+    from db import fetchAllCredits
+    
+    response = fetchAllCredits()
+    return jsonify(response)
+
+@app.route('/editCredit',methods = ['POST'])
+def handleEditCredit():
+    from db import editCredit
+    payload = request.get_json()
+    print('....payload recieved',payload)
+    payloadStructure = {
+        # 'timestamp':kutils.dates.currentTimestamp(),
+        'amountPaid':kutils.config.getValue('bmsDb/amountPaid'),
+        'saleId':kutils.config.getValue('bmsDb/saleId'),
+        'creditId':kutils.config.getValue('bmsDb/creditId'),
+        'paymentStatus':kutils.config.getValue('bmsDb/paymentStatus'),
+        'amountInDebt':kutils.config.getValue('bmsDb/amountInDebt')
+        # 'editedBy':kutils.config.getValue('bmsDb/editedBy')
+    }
+    payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if payloadValidationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status':False,
+                    'log':f'the value for {key} is missing please provide it '
+                })
+        print('....',payload)
+        creditEditingResponse = editCredit(payload)
+        return jsonify(creditEditingResponse)
+    return jsonify(payloadValidationResponse)
+
+# ------below these endpoints handle roles --
+@app.route('/createRole',methods=['POST'])
+def handleCreateRole():
+    '''
+        this endpoint is responsible for creating a a role 
+        
+    '''
+    from db import createRoles
+    payload = request.get_json()
+    payload['entryId'] = kutils.codes.new()
+    payload['roleId'] = kutils.codes.new()
+    payload['timestamp'] = kutils.dates.currentTimestamp()
+    payloadStructure = {
+        'entryId':kutils.config.getValue('bmsDb/entryId'),
+        'timestamp':kutils.config.getValue('bmsDb/timestamp'),
+        'roleId':kutils.config.getValue('bmsDb/roleId'),
+        'role':kutils.config.getValue('bmsDb/role'),
+        'others':kutils.config.getValue('bmsDb/others')
+       
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = createRoles(payload)
+        
+        if not createRoleResponse['status']:
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
+@app.route('/fetchAllRoles',methods=['POST'])
+def handleFetchAllRoles():
+    from db import fetchAllRoles
+    
+    response = fetchAllRoles()
+    return jsonify(response)
+
+@app.route('/fetchRole',methods=['POST'])
+def handleFetchRole():
+    from db import fetchRole
+    payload = request.get_json()
+    payloadStructure = {
+        'roleId':kutils.config.getValue('bmsDb/roleId'),
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = fetchRole(payload)
+        
+        if not createRoleResponse['status']:
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
+# --this module is responsible handing all the category endpoints 
+@app.route('/fetchAllCategories')
+def handleFetchAllCategories():
+    from db import fetchAllCategories
+    
+    response = fetchAllCategories()
+    return jsonify(response)    
+  
+@app.route('/createCategory',methods=['POST'])
+def handleCreateCategory():
+    from db import addCategoryToDb
+    payload = request.get_json()
+    payload['entryId'] = kutils.codes.new()
+    payload['categoryId'] = kutils.codes.new()
+    payload['timestamp'] = kutils.dates.currentTimestamp()
+    payloadStructure = {
+        'entryId':kutils.config.getValue('bmsDb/entryId'),
+        'timestamp':kutils.config.getValue('bmsDb/timestamp'),
+        'categoryId':kutils.config.getValue('bmsDb/categoryId'),
+        'category':kutils.config.getValue('bmsDb/category'),
+        'others':kutils.config.getValue('bmsDb/others')
+       
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = addCategoryToDb(payload)
+        
+        if not createRoleResponse['status']:
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
+    
+
 
 
 def init():
@@ -485,6 +641,7 @@ def init():
             'total':int,
             'grandTotal':int,
             'amountPaid':int,
+            'editedBy':str,
             'paymentType':str,
             'paymentStatus':str,
             'numberOfItemsSold':int,
@@ -497,8 +654,10 @@ def init():
             'roleId':str,
             'password':str,
             'role':str,
+            'creditId':str,
             'others':dict,
             'saleId':str,
+            'amountInDebt':int,
             'SECRETE_KEY':kutils.codes.new(),
             'SESSION_TYPE':'filesystem',
             'SESSION_PERMANENT':False,

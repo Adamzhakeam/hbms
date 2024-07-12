@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const fetchAllSalesBtn = document.getElementById('fetchAllProductSalesBtn');
-    const fetchSpecificSalesBtn = document.getElementById('fetchSpecificSalesBtn');
-    const fetchSalesFromToBtn = document.getElementById('fetchSalesFromToBtn');
+    const fetchSpecificSalesBtn = document.getElementById('fetchSpecificProductSalesBtn');
+    const fetchSalesFromToBtn = document.getElementById('fetchProductSalesFromToBtn');
     const salesTableBody = document.getElementById('salesTableBody');
 
     fetchAllSalesBtn.addEventListener('click', () => {
