@@ -29,7 +29,7 @@ def loginRequired(role):
         return decoratedView
     return wrapper
             
-# ---- these are routes to handle products activities in thw database ----
+# ---- these are routes to handle products activities in the database ----
 @app.route('/registerProduct',methods=['POST'])
 def handleRegisterProduct():
     from db import insertProductIntoDb
@@ -91,11 +91,10 @@ def handleFetchSpecificProduct():
     '''
     payload = request.get_json()
     productDetails = {
-        'productName': payload.get('productName'),
-        'productSerialNumber': payload.get('productSerialNumber')
+        'productName': payload.get('productName')
     }
     
-    if not productDetails['productName'] or not productDetails['productSerialNumber']:
+    if not productDetails['productName'] :
         return jsonify({'status': False, 'log': 'Product name and serial number are required'}), 400
 
     response = fetchSpecificProduct(productDetails)
@@ -114,18 +113,62 @@ def handleFetchSpecificProductById():
         # 'productName': payload.get('productName'),
         'productId': payload.get('productId')
     }
-    
+    print(payload)
     if not productDetails['productId']:
-        return jsonify({'status': False, 'log': 'Product name and productId are required'}), 400
+        return jsonify({'status': False, 'log': ' productId is required'}), 400
 
     response = fetchSpecificProductById(productDetails)
     print(response)
     
     return jsonify(response)
 
+@app.route('/fetchSpecificProductByCategory', methods=['POST'])
+
+def handleFetchSpecificProductByCategory():
+    from db import fetchSpecificProductByCategory
+    '''
+        This endpoint is responsible for fetching a specific product from the database.
+    '''
+    payload = request.get_json()
+    productDetails = {
+        # 'productName': payload.get('productName'),
+        'productCategory': payload.get('productCategory')
+    }
+    
+    if not productDetails['productCategory']:
+        return jsonify({'status': False, 'log': ' productId is required'}), 400
+
+    response = fetchSpecificProductByCategory(productDetails)
+    print(response)
+    
+    return jsonify(response)
+
+
+@app.route('/fetchSpecificProductByPertNumber', methods=['POST'])
+
+def handleFetchSpecificProductByPertNumber():
+    from db import fetchSpecificProductByPn
+    '''
+        This endpoint is responsible for fetching a specific product from the database.
+    '''
+    payload = request.get_json()
+    productDetails = {
+        # 'productName': payload.get('productName'),
+        'productSerialNumber': payload.get('productSerialNumber')
+    }
+    
+    if not productDetails['productSerialNumber']:
+        return jsonify({'status': False, 'log': 'Product  product pert number is required'}), 400
+
+    response = fetchSpecificProductByPn(productDetails)
+    print(response)
+    
+    return jsonify(response)
+
+
 
 @app.route('/editProduct',methods=['POST'])
-@loginRequired('admin')
+# @loginRequired('admin')
 def handleEditProduct():
     '''
         this is endpoint function is responsible for editting a product
@@ -491,7 +534,7 @@ def handleEditCredit():
         'saleId':kutils.config.getValue('bmsDb/saleId'),
         'creditId':kutils.config.getValue('bmsDb/creditId'),
         'paymentStatus':kutils.config.getValue('bmsDb/paymentStatus'),
-        'amountInDebt':kutils.config.getValue('bmsDb/amountInDebt')
+        # 'amountInDebt':kutils.config.getValue('bmsDb/amountInDebt')
         # 'editedBy':kutils.config.getValue('bmsDb/editedBy')
     }
     payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
@@ -572,12 +615,13 @@ def handleFetchRole():
         createRoleResponse  = fetchRole(payload)
         
         if not createRoleResponse['status']:
+            # print(createRoleResponse)
             return jsonify(createRoleResponse)
     
     return jsonify(validationResponse)
 
 # --this module is responsible handing all the category endpoints 
-@app.route('/fetchAllCategories')
+@app.route('/fetchAllCategories',methods = ['POST'])
 def handleFetchAllCategories():
     from db import fetchAllCategories
     
@@ -632,6 +676,8 @@ def init():
             'productSalePrice':int,
             'productSerialNumber':str,
             'productCategory':str,
+            'categoryId':str,
+            'category':str,
             'productQuantity':int,
             'units':str,
             'productImage':str,

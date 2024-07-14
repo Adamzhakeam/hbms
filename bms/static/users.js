@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     .then(response => response.json())
     .then(data => {
         if (data.status) {
-            data.roles.forEach(role => {
+            data.log.forEach(role => {
                 const option = document.createElement('option');
                 option.value = role.roleId;
                 option.textContent = role.role;
@@ -52,9 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         const formData = new FormData(createUserForm);
         const payload = {};
+
+        // Manually add form data to payload
         formData.forEach((value, key) => {
             payload[key] = value;
         });
+
+        // Add the selected roleId to the payload
+        payload['roleId'] = roleSelect.value;
 
         fetch('http://127.0.0.1:5000/addUser', {
             method: 'POST',
@@ -67,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             if (data.status) {
                 alert('User created successfully');
-                fetchAllUsers(); // Optional: Implement fetchAllUsers() to update user list
+                fetchAllUsers();
                 createUserModal.style.display = 'none';
                 document.body.classList.remove('blur');
             } else {
@@ -88,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(response => response.json())
         .then(data => {
             if (data.status) {
-                displayUsers(data.users);
+                displayUsers(data.log); // Updated to data.log
             } else {
                 alert('Error fetching users: ' + data.log);
             }
@@ -102,15 +107,54 @@ document.addEventListener('DOMContentLoaded', () => {
         users.forEach(user => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${user.username}</td>
+                <td>${user.userName}</td>
                 <td>${user.email}</td>
-                <td>${user.phone}</td>
-                <td>${user.role}</td>
+                <td>${user.phoneNumber}</td>
+                <td id="role_${user.userId}">Loading...</td> <!-- Placeholder for role name -->
             `;
             userTableBody.appendChild(row);
+
+            // Fetch and display role for each user
+            fetchRoleById(user.roleId)
+            .then(role => {
+                const roleCell = document.getElementById(`role_${user.userId}`);
+                if (role) {
+                    roleCell.textContent = role.role; // Display role name
+                } else {
+                    roleCell.textContent = 'Role Not Found';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching role details:', error);
+                const roleCell = document.getElementById(`role_${user.userId}`);
+                roleCell.textContent = 'Error fetching role';
+            });
         });
     }
 
-    // Initial fetch to populate the user table
+    // Function to fetch role details by roleId
+    function fetchRoleById(roleId) {
+        return fetch('http://127.0.0.1:5000/fetchRole', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ roleId: roleId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status) {
+                return data.log[0]; // Assuming role details are returned as the first element in the list
+            } else {
+                throw new Error('Role fetch error: ' + data.log);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching role:', error);
+            return null;
+        });
+    }
+
+    // Initial fetch of all users when the page loads
     fetchAllUsers();
 });

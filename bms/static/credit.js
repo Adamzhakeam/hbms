@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${credit.soldTo}</td>
                 <td>${credit.amountInDebts}</td> <!-- Corrected here -->
                 <td>${credit.paymentStatus}</td>
-                <td><button class="edit-btn" data-credit-id="${credit.creditId}" data-sale-id="${credit.saleId}" data-amount-in-debt="${credit.amountInDebt}" data-payment-status="${credit.paymentStatus}">Edit</button></td>
+                <td><button class="edit-btn" data-credit-id="${credit.creditId}" data-sale-id="${credit.saleId}" data-amount-in-debt="${credit.amountInDebts}" data-payment-status="${credit.paymentStatus}">Edit</button></td>
             `;
             creditsTableBody.appendChild(row);
         });

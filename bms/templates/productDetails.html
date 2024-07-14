@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <link rel="stylesheet" href="../../bms/static/productDetails.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Product Management</h1>
+        <input type="text" id="searchInput" placeholder="Search...">
+        <div>
+            <label>
+                <input type="radio" name="searchType" value="name" checked> By Name
+            </label>
+            <label>
+                <input type="radio" name="searchType" value="serialNumber"> By Serial Number
+            </label>
+            <label>
+                <input type="radio" name="searchType" value="category"> By Category
+            </label>
+            <button onclick="fetchNextPage()">Next</button>
+        </div>
+        <button onclick="searchProducts()">Search</button>
+        <table id="productTable">
+            <thead>
+                <tr>
+                    <th>Product Name</th>
+                    <th>Serial Number</th>
+                    <th>Category</th>
+                    <th>Quantity</th>
+                    <th>Sale Price</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <!-- Product rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Edit Product</h2>
+            <form id="editForm">
+                <!-- <input type="hidden" id="doNotEditThisId" name="productId" required> -->
+                <label for="editProductName">Product Name:</label>
+                <input type="text" id="editProductName" name="productName" required><br><br>
+                <label for="editProductSerialNumber">Serial Number:</label>
+                <input type="text" id="editProductSerialNumber" name="productSerialNumber" required><br><br>
+                <label for="editProductCategory">Category:</label>
+                <input type="text" id="editProductCategory" name="productCategory" required><br><br>
+                <label for="editProductCostPrice">Cost Price:</label>
+                <input type="text" id="editProductCostPrice" name="productCostPrice" required><br><br>
+                <label for="editProductSalePrice">Sale Price:</label>
+                <input type="text" id="editProductSalePrice" name="productSalePrice" required><br><br>
+                <label for="editProductQuantity">Quantity:</label>
+                <input type="number" id="editProductQuantity" name="productQuantity" required><br><br>
+                <label for="editUnits">Units:</label>
+                <input type="text" id="editUnits" name="units" required><br><br>
+                <button type="submit" onclick="updateProduct(event)">Update Product</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../../bms/static/productDetails.js"></script>
+</body>
+</html>

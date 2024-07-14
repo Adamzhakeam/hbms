@@ -9,11 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const role = document.getElementById('role').value;
-        // const others = document.getElementById('others').value;
 
         const payload = {
             role,
-            others
+            others: { 'userName': 'camero' }
         };
 
         fetch('http://127.0.0.1:5000/createRole', {
@@ -45,8 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Fetched roles data:', data); // Log fetched data
             if (data.status) {
-                displayRoles(data.roles);
+                displayRoles(data.log); // Use data.log instead of data.roles
             } else {
                 alert('Error fetching roles: ' + data.log);
             }
@@ -56,14 +56,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function displayRoles(roles) {
         rolesTableBody.innerHTML = ''; // Clear previous data
-        roles.forEach(role => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${role.roleId}</td>
-                <td>${role.role}</td>
-                <td>${role.others}</td>
-            `;
-            rolesTableBody.appendChild(row);
-        });
+        if (roles && roles.length) {
+            roles.forEach(role => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${role.roleId}</td>
+                    <td>${role.role}</td>
+                    <td>${JSON.stringify(role.others)}</td>
+                `;
+                rolesTableBody.appendChild(row);
+            });
+        } else {
+            console.warn('No roles available to display');
+        }
     }
 });
