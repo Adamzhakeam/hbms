@@ -525,7 +525,7 @@ def login(userDetails:dict)->dict:
             return {'status':True, 'log':userFetchResponse}
         return{'status':False, 'log':'You have input a wrong password'}
     
-
+# -- this module responsible for creating roles 
 def createRoles(roleDetails:dict)->dict:
     '''
         this module is responsible for creation of roles and adding them to the db
@@ -602,7 +602,84 @@ def fetchAllRoles()->list:
             'log':roleFetchResults
         }
 
+# --- this module is responsible for handling 
+def createUnit(unitDetails:dict)->dict:
+    '''
+        this module is responsible for creation of roles and adding them to the db
+        @param roleDetails:'entryId','timestamp','roleId','role','others'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        roleInsertionResponse = db.insert(
+            'units',
+            [unitDetails['entryId'],unitDetails['timestamp'],unitDetails['unitId'],unitDetails['unit'],unitDetails['others']]
+        )
+        return roleInsertionResponse
     
+def fetchUnit(unitDetails:dict)->list:
+    '''
+        this function is responsible for fetching the user role 
+        from database 
+        @param roleId:
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        roleFetchResults = db.fetch(
+            'units',
+            ['unit'],
+            'unitId = ?',
+            [unitDetails['unitId']],
+            limit = 1,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator= False
+        )
+        if len(roleFetchResults) == 0:
+            return{
+                'status':False,
+                'log':"unit does not exist"
+            }
+        print(roleFetchResults)
+        return {
+            'status':True,
+            'log':roleFetchResults
+        }
+    
+    
+def fetchAllUnits()->list:
+    '''
+        this function is responsible for fetching the user role 
+        from database 
+        @param roleId:
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        roleFetchResults = db.fetch(
+            'units',
+            ['*'],
+            '',
+            [],
+            limit = 100,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator= False
+        )
+        if len(roleFetchResults) == 0:
+            return{
+                'status':False,
+                'log':"you haven`t registered any units yet"
+            }
+        return{
+            'status':True,
+            'log':roleFetchResults
+        }
+
+ 
 # ---the modules below are responsible for handling customers
 '''
     this module is responsible for handling customers adding them to the database and 
@@ -662,7 +739,7 @@ def fetchCustomer(phoneNumber:int)->list:
         }
     
     
-def fetchCustomerById(customerId:str)->list:
+def fetchCustomerById(customerDetails:dict)->list:
     '''
         this function is responsible for fetching customer from db
         by use of customerId
@@ -674,10 +751,36 @@ def fetchCustomerById(customerId:str)->list:
             'customers',
             ['*'],
             'customerId = ?',
-            [customerId],limit = 1,
+            [customerDetails['customerId']],limit = 1,
             returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
         )
         return customerFetchResponse
+def fetchAllCustomers()->dict:
+    '''
+        this function is responsible for fetching customer from db
+        by use of customerId
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        customerFetchResponse = db.fetch(
+            'customers',
+            ['*'],
+            '',
+            [],limit = 1,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        if len(customerFetchResponse) == 0:
+            return{
+                'status':False,
+                'log':'you havent registered any customers yet'
+                }
+        return {
+            'status':True,
+            'log':customerFetchResponse
+        }
+    
+
 
 # ----the module below handles product categories----
 '''
@@ -1074,6 +1177,13 @@ def init():
                             others              json
                             
                 
+                ''',
+                'units':'''
+                            entryId             varchar(32) not null,
+                            timestamp           varchar(32) not null,
+                            unitId              varchar(32) not null,
+                            unit                varchar(32) not null,
+                            others              json
                 ''',
                 'users':'''
                             entryId             varchar(32) not null,

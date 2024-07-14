@@ -31,7 +31,7 @@
             </div>
             <div class="form-group">
                 <label for="productCategory">Category</label>
-                <input type="text" id="productCategory" class="product-input" required>
+                <select id="productCategory" class="product-input" required></select>
             </div>
             <div class="form-group">
                 <label for="productQuantity">Quantity</label>
@@ -39,7 +39,7 @@
             </div>
             <div class="form-group">
                 <label for="units">Units</label>
-                <input type="text" id="units" class="product-input" required>
+                <select id="units" class="product-input" required></select>
             </div>
             <div class="form-group">
                 <label for="productImage">Product Image URL</label>
@@ -48,28 +48,25 @@
             <button onclick="registerProduct()">Register Product</button>
         </section>
 
-        <!-- View All Products -->
-        <section id="view-products">
-            <h2>All Products</h2>
+        <!-- <section id="fetch-products">
+            <h2>Fetch Products</h2>
             <button onclick="fetchAllProducts()">Fetch All Products</button>
             <div id="products-list"></div>
         </section>
 
-        <!-- Edit Product -->
         <section id="edit-product">
             <h2>Edit Product</h2>
             <div class="form-group">
-                <label for="searchProductName">Product Name</label>
-                <input type="text" id="searchProductName" class="product-input" required>
+                <label for="searchProductName">Search Product Name</label>
+                <input type="text" id="searchProductName" class="product-input">
             </div>
             <div class="form-group">
-                <label for="searchProductSerialNumber">Product Serial Number</label>
-                <input type="text" id="searchProductSerialNumber" class="product-input" required>
+                <label for="searchProductSerialNumber">Search Product Serial Number</label>
+                <input type="text" id="searchProductSerialNumber" class="product-input">
             </div>
-            <button onclick="fetchSpecificProduct()">Search Product</button>
+            <button onclick="fetchSpecificProduct()">Fetch Product</button>
 
-            <!-- Edit Product Fields -->
-            <div id="edit-product-fields" style="display:none;">
+            <div id="edit-product-fields" style="display: none;">
                 <div class="form-group">
                     <label for="editProductName">Product Name</label>
                     <input type="text" id="editProductName" class="product-input" required>
@@ -84,7 +81,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editProductCategory">Category</label>
-                    <input type="text" id="editProductCategory" class="product-input" required>
+                    <select id="editProductCategory" class="product-input" required></select>
                 </div>
                 <div class="form-group">
                     <label for="editProductQuantity">Quantity</label>
@@ -92,14 +89,14 @@
                 </div>
                 <div class="form-group">
                     <label for="editUnits">Units</label>
-                    <input type="text" id="editUnits" class="product-input" required>
+                    <select id="editUnits" class="product-input" required></select>
                 </div>
                 <input type="hidden" id="editProductId">
                 <button onclick="editProduct()">Edit Product</button>
             </div>
-        </section>
+        </section> -->
     </div>
 
-    <script src="../../bms/static/script.js"></script>
+    <script src="../../bms/static/products.js"></script>
 </body>
 </html>

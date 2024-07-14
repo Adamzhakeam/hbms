@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Management</title>
+    <link rel="stylesheet" href="../../bms/static/units.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Unit Management</h1>
+
+        <!-- Create Unit Form -->
+        <div id="createUnitContainer">
+            <h2>Create Unit</h2>
+            <form id="createUnitForm">
+                <label for="unit">Unit:</label>
+                <input type="text" id="unit" name="unit" required>
+
+                <!-- <label for="others">Others:</label>
+                <input type="text" id="others" name="others"> -->
+
+                <button type="submit">Create Unit</button>
+            </form>
+        </div>
+
+        <!-- Fetch Units -->
+        <!-- <div id="fetchUnitsContainer">
+            <h2>Units</h2>
+            <button id="fetchAllUnitsBtn">Fetch All Units</button>
+
+            <form id="fetchUnitForm">
+                <label for="unitId">Unit ID:</label>
+                <input type="text" id="unitId" name="unitId" required>
+                <button type="submit">Fetch Unit</button>
+            </form> -->
+
+            <table id="unitsTable">
+                <thead>
+                    <tr>
+                        <th>Unit ID</th>
+                        <th>Unit</th>
+                        <th>Others</th>
+                    </tr>
+                </thead>
+                <tbody id="unitsTableBody">
+                    <!-- Units data will be appended here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../../bms/static/units.js"></script>
+</body>
+</html>

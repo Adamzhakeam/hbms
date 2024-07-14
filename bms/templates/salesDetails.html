@@ -9,21 +9,28 @@
 <body id="salesDetails">
     <div class="container">
         <h1>Sales Details</h1>
+        <select id="salesFilterDropdown">
+            <option value="all">All Sales</option>
+            <option value="today">Today</option>
+            <option value="thisMonth">This Month</option>
+        </select>
         <button id="fetchAllSalesBtn">Fetch All Sales</button>
         <button id="fetchSpecificSalesBtn">Fetch Specific Sales</button>
         <button id="fetchSalesFromToBtn">Fetch Sales From-To</button>
-
+        <div id="totalsContainer">
+            <p id="totalExpectedAmount">Total Expected Amount: 0.00</p>
+            <p id="totalAmountPaid">Total Amount Paid: 0.00</p>
+        </div>
         <div id="salesTableContainer">
             <table id="salesTable">
                 <thead>
                     <tr>
-                        <th>SoldBy</th>
+                        <th>Sold By</th>
                         <th>Number Of Items Sold</th>
-                        <th>expected Amount</th>
+                        <th>Expected Amount</th>
                         <th>Amount Paid</th>
                         <th>Payment Type</th>
                         <th>Payment Status</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="salesTableBody">

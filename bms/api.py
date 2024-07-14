@@ -205,6 +205,73 @@ def handleEditProduct():
             return jsonify(editResponse)
     return jsonify(editProductValidationResponse)
 
+# --- the routes below are responsible for customers --------
+@app.route('/registerCustomer',methods=['POST'])
+def handleRegisterCustomer():
+    from db import addCustomerToDb
+    '''
+        this endpoint is responsible for inserting/registering
+         product into the database 
+    '''
+    payload = request.get_json()
+    payload['entryId'] = kutils.codes.new()
+    payload['customerId'] = kutils.codes.new()
+    payload['timestamp'] = kutils.dates.currentTimestamp()
+    payload['userId'] = "sirkata"
+    # payload['others'] = {}
+    payloadStructure = {
+        'entryId':kutils.config.getValue('bmsDb/entryId'),
+        'customerId':kutils.config.getValue('bmsDb/customerId'),
+        'timestamp':kutils.config.getValue('bmsDb/timestamp'),
+        'customerName':kutils.config.getValue('bmsDb/customerName'),
+        'customerPhoneNumber':kutils.config.getValue('bmsDb/customerPhoneNumber'),
+        'customerLocation':kutils.config.getValue('bmsDb/customerLocation'),
+        'others':kutils.config.getValue('bmsDb/others')
+        
+    }
+    
+    productPayLoadvalidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if productPayLoadvalidationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return {
+                    'status':False,
+                    'log': f'the value for {key} is missing please provide it '
+                }
+    productinsertionresponse = addCustomerToDb(payload)
+    return jsonify(productinsertionresponse)
+
+@app.route('/fetchAllCustomers', methods=['POST'])
+def handleFetchAllCustomers():
+    from db import fetchAllCustomers
+    '''
+        This endpoint is responsible for fetching all products from the database.
+    '''
+    response = fetchAllCustomers()
+    
+    return jsonify(response)
+
+@app.route('/fetchSpecificCustomer', methods=['POST'])
+
+def handleFetchSpecificCustomer():
+    from db import fetchCustomerById
+    '''
+        This endpoint is responsible for fetching a specific product from the database.
+    '''
+    payload = request.get_json()
+    productDetails = {
+        'customerId': payload.get('customerId')
+    }
+    
+    if not productDetails['productName'] :
+        return jsonify({'status': False, 'log': 'Product name and serial number are required'}), 400
+
+    response = fetchCustomerById(productDetails)
+    
+    return jsonify(response)
+
+
 # --- the routes below are responsible for handling database operations of sales
 '''
     this module is responsible for handling routes for the sales module 
@@ -619,6 +686,75 @@ def handleFetchRole():
             return jsonify(createRoleResponse)
     
     return jsonify(validationResponse)
+# -----this module is responsible for handling all unit related end points
+@app.route('/createUnit',methods=['POST'])
+def handleCreateUnit():
+    '''
+        this endpoint is responsible for creating a a role 
+        
+    '''
+    from db import createUnit
+    payload = request.get_json()
+    payload['entryId'] = kutils.codes.new()
+    payload['unitId'] = kutils.codes.new()
+    payload['timestamp'] = kutils.dates.currentTimestamp()
+    payloadStructure = {
+        'entryId':kutils.config.getValue('bmsDb/entryId'),
+        'timestamp':kutils.config.getValue('bmsDb/timestamp'),
+        'unitId':kutils.config.getValue('bmsDb/unitId'),
+        'unit':kutils.config.getValue('bmsDb/unit'),
+        'others':kutils.config.getValue('bmsDb/others')
+       
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = createUnit(payload)
+        
+        if not createRoleResponse['status']:
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
+@app.route('/fetchAllUnits',methods=['POST'])
+def handleFetchAllUnits():
+    from db import fetchAllUnits
+    
+    response = fetchAllUnits()
+    return jsonify(response)
+
+@app.route('/fetchUnit',methods=['POST'])
+def handleFetchUnit():
+    from db import fetchUnit
+    payload = request.get_json()
+    payloadStructure = {
+        'unitId':kutils.config.getValue('bmsDb/unitId'),
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = fetchUnit(payload)
+        
+        if not createRoleResponse['status']:
+            # print(createRoleResponse)
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
 
 # --this module is responsible handing all the category endpoints 
 @app.route('/fetchAllCategories',methods = ['POST'])
@@ -703,6 +839,12 @@ def init():
             'creditId':str,
             'others':dict,
             'saleId':str,
+            'unit':str,
+            'unitId':str,
+            'customerName':str,
+            'customerPhoneNumber':str,
+            'customerId':str,
+            'customerLocation':str,
             'amountInDebt':int,
             'SECRETE_KEY':kutils.codes.new(),
             'SESSION_TYPE':'filesystem',

@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${sale.quantity}</td>
                 <td>${sale.units}</td>
                 <td>${sale.total}</td>
-                <td>${sale.saleDate}</td>
+                
             `;
             salesTableBody.appendChild(row);
         });
