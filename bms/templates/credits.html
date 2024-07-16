@@ -5,6 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Credits Management</title>
     <link rel="stylesheet" href="../../bms/static/credit.css">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Responsive Header</title>
+        <style>
+            /* Inline CSS for header styling */
+            body, html {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 20px;
+                background-color: #4CAF50; /* Change as needed */
+                color: white;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 1.5em;
+            }
+            .header .buttons {
+                display: flex;
+                gap: 10px;
+            }
+            .header .buttons button {
+                padding: 5px 10px;
+                border: none;
+                background-color: #fff;
+                color: #4CAF50; /* Change as needed */
+                cursor: pointer;
+                font-size: 1em;
+            }
+            .header .buttons button:hover {
+                background-color: #ddd;
+            }
+            .header .user-info {
+                font-size: 1em;
+            }
+            @media (max-width: 600px) {
+                .header h1 {
+                    font-size: 1.2em;
+                }
+                .header .buttons button {
+                    padding: 5px 8px;
+                    font-size: 0.9em;
+                }
+                .header .user-info {
+                    font-size: 0.9em;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1 id="greeting"></h1>
+            <div class="user-info" id="user-info"></div>
+            <div class="buttons">
+                <button onclick="goHome()">Home</button>
+                <button onclick="logout()">Logout</button>
+            </div>
+        </div>
+    
+        <script>
+            // JavaScript for greeting according to the time of day and displaying user info
+            document.addEventListener('DOMContentLoaded', () => {
+                const userName = "John Doe"; // Replace with the actual user's name
+                const greetingElement = document.getElementById('greeting');
+                const userInfoElement = document.getElementById('user-info');
+                const currentHour = new Date().getHours();
+                let greeting;
+    
+                if (currentHour < 12) {
+                    greeting = "Good Morning";
+                } else if (currentHour < 18) {
+                    greeting = "Good Afternoon";
+                } else {
+                    greeting = "Good Evening";
+                }
+    
+                greetingElement.textContent = `${greeting},`;
+                userInfoElement.textContent = `Logged in as: ${userName}`;
+            });
+    
+            function goHome() {
+                // Redirect to home page
+                window.location.href = 'file:///home/predator/Documents/hbms/bms/templates/usersDashboard.html'; // Adjust URL as needed
+            }
+    
+            function logout() {
+                // Redirect to logout page or perform logout action
+                window.location.href = '/logout'; // Adjust URL as needed
+            }
+        </script>
+    </body>
+    </html>
 </head>
 <body id="credits">
     <h1>Credits Management</h1>

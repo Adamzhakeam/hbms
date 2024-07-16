@@ -7,6 +7,9 @@ import os
 
 app = Flask(__name__)
 CORS(app)
+
+# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 app.config['SECRETE_KEY'] = kutils.config.getValue('bmsDb/SECRETE_KEY')
 app.config['SESSION_TYPE'] = kutils.config.getValue('bmsDb/SESSION_TYPE')
 app.config['SESSION_PERMANENT'] = kutils.config.getValue('bmsDb/SESSION_PERMANENT')
@@ -14,23 +17,50 @@ app.config['SESSION_USER_SIGNER'] = kutils.config.getValue('bmsDb/SESSION_USER_S
 Session(app)
 
 # this function is responsible for protecting routes 
-def loginRequired(role):
+from flask import Flask, session, request, jsonify
+from functools import wraps
+
+app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # You should use a secure key for your application
+
+# Example public route
+@app.route('/login', methods=['POST'])
+def login():
+    # Login logic here
+    return "Login Page"
+
+def checkLoggedIn():
     def wrapper(func):
         @wraps(func)
-        def decoratedView(*args,**kwargs):
-            from db import fetchRole
+        def decoratedView(*args, **kwargs):
             if 'roleId' in session:
-                roleList = fetchRole(session['roleId'])
-                userRole = roleList[0]['role']
-                if userRole == role:
-                    return func(*args,**kwargs)
-                return jsonify({'status':False, 'log':f'{role} is not authorized '})
-            return{'status':False,'log':'roleId required to grant access'}
+                return func(*args, **kwargs)
+            else:
+                # Redirect to login page if not logged in
+                return redirect(url_for('/home/predator/Documents/hbms/bms/templates/index.html'))
         return decoratedView
     return wrapper
-            
+
+def checkUserRole(accepted_roles):
+    from db import fetchRole
+    def wrapper(func):
+        @wraps(func)
+        def decoratedView(*args, **kwargs):
+            if 'roleId' in session:
+                role_details = {'roleId': session['roleId']}
+                role_fetch_response = fetchRole(role_details)
+                if role_fetch_response['status'] and role_fetch_response['log'][0]['role'] in accepted_roles:
+                    return func(*args, **kwargs)
+                return jsonify({'status': False, 'log': 'Unauthorized access'})
+            return jsonify({'status': False, 'log': 'Login required to access this resource'}), 401
+        return decoratedView
+    return wrapper
+
+           
 # ---- these are routes to handle products activities in the database ----
 @app.route('/registerProduct',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleRegisterProduct():
     from db import insertProductIntoDb
     '''
@@ -73,6 +103,8 @@ def handleRegisterProduct():
     return jsonify(productinsertionresponse)
 
 @app.route('/fetchAllProducts', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllProducts():
     from db import fetchAllProducts
     '''
@@ -82,7 +114,24 @@ def handleFetchAllProducts():
     
     return jsonify(response)
 
+@app.route('/fetchAllProductsWithWarningStock', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+# @loginRequired()
+def handleFetchAllProductsWithWarningStock():
+    from db import fetchAllProductsWithWarningStock
+    '''
+        This endpoint is responsible for fetching all products with warning stock from the database.
+    '''
+    response = fetchAllProductsWithWarningStock()
+    
+    return jsonify(response)
+
+
 @app.route('/fetchSpecificProduct', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+# @loginRequired()
 
 def handleFetchSpecificProduct():
     from db import fetchSpecificProduct
@@ -102,6 +151,9 @@ def handleFetchSpecificProduct():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductById', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+# @loginRequired()
 
 def handleFetchSpecificProductById():
     from db import fetchSpecificProductById
@@ -123,6 +175,9 @@ def handleFetchSpecificProductById():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductByCategory', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+# @loginRequired()
 
 def handleFetchSpecificProductByCategory():
     from db import fetchSpecificProductByCategory
@@ -145,6 +200,9 @@ def handleFetchSpecificProductByCategory():
 
 
 @app.route('/fetchSpecificProductByPertNumber', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+# @loginRequired()
 
 def handleFetchSpecificProductByPertNumber():
     from db import fetchSpecificProductByPn
@@ -168,7 +226,6 @@ def handleFetchSpecificProductByPertNumber():
 
 
 @app.route('/editProduct',methods=['POST'])
-# @loginRequired('admin')
 def handleEditProduct():
     '''
         this is endpoint function is responsible for editting a product
@@ -243,6 +300,8 @@ def handleRegisterCustomer():
     return jsonify(productinsertionresponse)
 
 @app.route('/fetchAllCustomers', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllCustomers():
     from db import fetchAllCustomers
     '''
@@ -253,7 +312,6 @@ def handleFetchAllCustomers():
     return jsonify(response)
 
 @app.route('/fetchSpecificCustomer', methods=['POST'])
-
 def handleFetchSpecificCustomer():
     from db import fetchCustomerById
     '''
@@ -278,6 +336,7 @@ def handleFetchSpecificCustomer():
     these include these include fetching,editing,deleting and adding
 '''
 @app.route('/addSale', methods=['POST'])
+
 def handleAddSale():
     '''
         This endpoint is responsible for adding an entire sale to the database.
@@ -328,6 +387,7 @@ def handleAddSale():
     return jsonify(saleValidationResponse)
 
 @app.route('/fetchAllSales', methods=['POST'])
+
 def handleFetchAllSales():
     from db import fetchAllSales
     '''
@@ -378,6 +438,7 @@ def handleFetchSaleOnSpecificDateFromTo():
     return jsonify(response)
 
 @app.route('/addSingleProductSale', methods=['POST'])
+
 def handleAddSingleProductSale():
     '''
     This endpoint is responsible for adding individual product sales to the database.
@@ -437,6 +498,7 @@ def handleAddSingleProductSale():
     return jsonify({'status': True, 'log': 'Products added successfully!'})
 
 @app.route('/fetchAllProductSales', methods=['POST'])
+
 def handleFetchAllProductSales():
     from db import fetchAllProductSales
     '''
@@ -447,6 +509,7 @@ def handleFetchAllProductSales():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductSales', methods=['POST'])
+
 
 def handleFetchProductSaleOnSpecificDate():
     from db import fetchSpecificProductSale
@@ -466,6 +529,8 @@ def handleFetchProductSaleOnSpecificDate():
     
     return jsonify(response)
 @app.route('/fetchSpecificProductSalesFromTo', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 
 def handleFetchProductSaleOnSpecificDateFromTo():
     from db import fetchSpecificProductSalesFromTo
@@ -491,6 +556,8 @@ def handleFetchProductSaleOnSpecificDateFromTo():
 # ------the module below is responsible fo handling user and roles  related endpoints 
 
 @app.route('/addUser',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleAdduser():
     '''
     this function is responsible for handling 
@@ -530,6 +597,8 @@ def handleAdduser():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllUsers',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllUsers():
     from db import fetchAllUsers
     
@@ -566,6 +635,8 @@ def handlelogin():
     return jsonify(loginValidationResponse)
 
 @app.route('/profile')
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def profile():
     if 'userId' in session:
         userId = session['userId']
@@ -576,6 +647,8 @@ def profile():
     return jsonify({'status':False,'log':'User is not logged in'})
 
 @app.route('/logoutUser')
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleLogoutUser():
     session.clear()
     return jsonify({'status':True, 'log':'Logged Out Successfully'}) 
@@ -584,13 +657,27 @@ def handleLogoutUser():
 # -------module for credit endpoints-----------
 
 @app.route('/fetchAllCredits',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllCredits():
     from db import fetchAllCredits
     
     response = fetchAllCredits()
     return jsonify(response)
 
+@app.route('/fetchAllUnclearedCredits',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+def handleFetchAllUnclearedCredits():
+    from db import fetchAllUnClearedCredits
+    
+    response = fetchAllUnClearedCredits()
+    return jsonify(response)
+
+
 @app.route('/editCredit',methods = ['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleEditCredit():
     from db import editCredit
     payload = request.get_json()
@@ -620,6 +707,8 @@ def handleEditCredit():
 
 # ------below these endpoints handle roles --
 @app.route('/createRole',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleCreateRole():
     '''
         this endpoint is responsible for creating a a role 
@@ -656,6 +745,8 @@ def handleCreateRole():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllRoles',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllRoles():
     from db import fetchAllRoles
     
@@ -663,6 +754,8 @@ def handleFetchAllRoles():
     return jsonify(response)
 
 @app.route('/fetchRole',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchRole():
     from db import fetchRole
     payload = request.get_json()
@@ -688,6 +781,8 @@ def handleFetchRole():
     return jsonify(validationResponse)
 # -----this module is responsible for handling all unit related end points
 @app.route('/createUnit',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleCreateUnit():
     '''
         this endpoint is responsible for creating a a role 
@@ -724,6 +819,8 @@ def handleCreateUnit():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllUnits',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllUnits():
     from db import fetchAllUnits
     
@@ -731,6 +828,8 @@ def handleFetchAllUnits():
     return jsonify(response)
 
 @app.route('/fetchUnit',methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchUnit():
     from db import fetchUnit
     payload = request.get_json()
@@ -758,6 +857,8 @@ def handleFetchUnit():
 
 # --this module is responsible handing all the category endpoints 
 @app.route('/fetchAllCategories',methods = ['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
 def handleFetchAllCategories():
     from db import fetchAllCategories
     

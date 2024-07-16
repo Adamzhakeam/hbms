@@ -222,7 +222,7 @@ def fetchAllProducts()->dict:
             ['*'],
             '',
             [],
-            limit = 5,
+            limit = 100,
             returnDicts=True,
             returnNamespaces=False,
             parseJson=False,
@@ -232,6 +232,36 @@ def fetchAllProducts()->dict:
             return {
                 'status':False,
                 'log':"you haven`t registered any products yet"
+            }
+    return {
+            'status':True,
+            'log':productsList
+        }
+
+def fetchAllProductsWithWarningStock()->dict:
+    '''
+        this function is responsible for fetching all 
+        the products from the database 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
+        productsList = db.fetch(
+            'products',
+            ['*'],
+            'productQuantity <= ?',
+            [5],
+            limit = 100,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator=False
+        )
+    if not len(productsList) :
+            return {
+                'status':False,
+                'log':"you dont have any products with warning stock as yet"
             }
     return {
             'status':True,
@@ -967,6 +997,35 @@ def fetchAllCredits():
              'log':creditsFetchResponse
         
         }
+         
+def fetchAllUnClearedCredits():
+    '''
+        this function is responsible for fetching uncleared  debtors details 
+        from table credits 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+         creditsFetchResponse = db.fetch(
+            'credits',
+            ['*'],
+            'amountInDebts > ?',
+            [0],limit = 100,
+            returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+         if len(creditsFetchResponse) == 0:
+             return{
+                 'status':False,
+                 'log':'You have not made any sales yet'
+             }
+         return {
+             'status':True,
+             'log':creditsFetchResponse
+        
+        }
+
+
 def fetchAllCreditById(creditId:str)->dict:
     '''
         this function is responsible for fetching product sales details 
@@ -1287,11 +1346,12 @@ if __name__ == "__main__":
         'password':'hello123',
         'roles':'user',
         'email':'johndoe@gmail.com',
-        'phoneNumber':256782345678,
+        'phoneNumber':'',
         'roleId':'user'
     }
    
     createTables()
+    print(fetchAllUnClearedCredits())
     # print(fetchSpecificSale({'saleDate':'2024-07-09'}))
     # date = kutils.dates.today()
     # print(date)
