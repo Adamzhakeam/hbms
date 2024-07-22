@@ -1,64 +1,59 @@
-from flask import Flask,request,jsonify,session, redirect, url_for
+from flask import Flask,request,jsonify,session, redirect, url_for,render_template,make_response
+# from flask_sqlalchemy import SQL
 from functools import wraps
 from flask_cors import CORS
 import kisa_utils as kutils
 from flask_session import Session
+# import logging
 import os
 
 app = Flask(__name__)
 CORS(app)
-
-# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-
+app.config.update(
+    SESSION_COOKIE_SAMESITE='None',
+    SESSION_COOKIE_SECURE=True  # Ensures cookies are only sent over HTTPS
+)
 app.config['SECRETE_KEY'] = kutils.config.getValue('bmsDb/SECRETE_KEY')
 app.config['SESSION_TYPE'] = kutils.config.getValue('bmsDb/SESSION_TYPE')
 app.config['SESSION_PERMANENT'] = kutils.config.getValue('bmsDb/SESSION_PERMANENT')
 app.config['SESSION_USER_SIGNER'] = kutils.config.getValue('bmsDb/SESSION_USER_SIGNER')
 Session(app)
 
+
+
+@app.route('/setcookie')
+def set_cookie():
+    response = make_response("Cookie is set")
+    response.set_cookie('my_cookie', 'cookie_value', samesite='None', secure=True)
+    return response
+
 # this function is responsible for protecting routes 
-from flask import Flask, session, request, jsonify
-from functools import wraps
-
-app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # You should use a secure key for your application
-
-# Example public route
-@app.route('/login', methods=['POST'])
-def login():
-    # Login logic here
-    return "Login Page"
-
-def checkLoggedIn():
-    def wrapper(func):
-        @wraps(func)
-        def decoratedView(*args, **kwargs):
-            if 'roleId' in session:
-                return func(*args, **kwargs)
-            else:
-                # Redirect to login page if not logged in
-                return redirect(url_for('/home/predator/Documents/hbms/bms/templates/index.html'))
-        return decoratedView
-    return wrapper
-
-def checkUserRole(accepted_roles):
+def loginRequired(roles:list):
     from db import fetchRole
     def wrapper(func):
         @wraps(func)
         def decoratedView(*args, **kwargs):
-            if 'roleId' in session:
-                role_details = {'roleId': session['roleId']}
-                role_fetch_response = fetchRole(role_details)
-                if role_fetch_response['status'] and role_fetch_response['log'][0]['role'] in accepted_roles:
-                    return func(*args, **kwargs)
-                return jsonify({'status': False, 'log': 'Unauthorized access'})
-            return jsonify({'status': False, 'log': 'Login required to access this resource'}), 401
+            if 'roleId' not in session:
+                return redirect(url_for('login'))  # Redirect to the login page if roleId is not in session
+
+            roleList = fetchRole(session['roleId'])
+            if not roleList['status']:
+                return jsonify({'status': False, 'log': 'User does not exist'})  # Handle case where user role does not exist
+
+            userRole = roleList[0]['role']
+            print('---->>>>>>',userRole)
+            if userRole in roles:
+                return func(*args, **kwargs)
+            
+            return jsonify({'status': False, 'log': f'{userRole} is not authorized'})  # Handle unauthorized access
+
         return decoratedView
     return wrapper
-
-           
+                
 # ---- these are routes to handle products activities in the database ----
 @app.route('/registerProduct',methods=['POST'])
+@loginRequired(['user','manager','admin'])
+# @cross_origin()
 # @checkLoggedIn()
 # @checkUserRole(['manager','admin'])
 def handleRegisterProduct():
@@ -605,54 +600,58 @@ def handleFetchAllUsers():
     response = fetchAllUsers()
     return jsonify(response)
 
-@app.route('/login',methods=['POST'])
-def handlelogin():
+@app.route('/login', methods=['POST', 'GET'])
+def login():
     from db import login
-    payload = request.get_json()
-    payloadStructure = {
-        'phoneNumber':kutils.config.getValue('bmsDb/phoneNumber'),
-        'password':kutils.config.getValue('bmsDb/password')
-    }
-    loginValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
-    if loginValidationResponse['status']:
-        for key in payload:
-            if not payload[key]:
-                return jsonify({
-                    'status': False,
-                    'log': f'The value for {key} is missing. Please provide it.'
-                })
+    if request.method == 'POST':
+        data = request.get_json()
+        phoneNumber = data.get('phoneNumber')
+        password = data.get('password')
         
-        loginResponse  = login(payload)
-        
-        if loginResponse['status']:
-            user = loginResponse['log'][0]
-            session['userId'] = user['userId']
-            session['userName'] = user['userName']
-            session['roleId'] = user['roleId']
-            
-    
-        return  jsonify(loginResponse)
-    return jsonify(loginValidationResponse)
+        user = login({'phoneNumber': phoneNumber, 'password': password})
+        if user['status']:
+            session['userId'] = user['log'][0]['userId']
+            session['roleId'] = user['log'][0]['roleId']
+            session['userName'] = user['log'][0]['userName']
+            return jsonify({'status': True, 'redirect': url_for('dashboard')})
+        else:
+            return jsonify({'status': False, 'log': 'Invalid credentials'})
+    return render_template('/home/predator/Desktop/hbms-1/bms/templates/login.html')
 
-@app.route('/profile')
+@app.route('/dashboard',methods=['POST','GET'])
+@loginRequired(['user', 'manager', 'admin'])
+def dashboard():
+    userName = session.get('userName')
+    role = session.get('role')
+    return render_template('/home/predator/Desktop/hbms-1/bms/templates/dashboard.html', userName=userName, role=role)
+
+
+
+@app.route('/profile',methods=['POST'])
+@loginRequired(['user','manager','admin'])
 # @checkLoggedIn()
 # @checkUserRole(['manager','admin'])
 def profile():
     if 'userId' in session:
+        print('working MF')
         userId = session['userId']
         userName = session['userName']
         roleId = session['roleId']
         
+        print(userName)
+        
         return jsonify({'userId':userId,'userName':userName,'role':roleId})
-    return jsonify({'status':False,'log':'User is not logged in'})
+    # logging.debug(f'you need to login first')
+    return render_template('index.html')
 
-@app.route('/logoutUser')
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-def handleLogoutUser():
-    session.clear()
-    return jsonify({'status':True, 'log':'Logged Out Successfully'}) 
-
+@app.route('/logout')
+def logout():
+    session.pop('userId', None)
+    session.pop('roleId', None)
+    session.pop('userName', None)
+    response = redirect(url_for('login'))
+    response.set_cookie('session', '', expires=0, samesite='None', secure=True)
+    return response
 # ---the module below is responsible for handling all the credit endpoints
 # -------module for credit endpoints-----------
 
