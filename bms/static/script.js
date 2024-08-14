@@ -385,38 +385,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 // ---log in aka index.hmtl page java script
-document.getElementById('loginForm').addEventListener('submit', function(event) {
+document.getElementById('loginForm').onsubmit = async function(event) {
     event.preventDefault(); // Prevent form submission
 
-    var phone = document.getElementById('phone').value;
-    var password = document.getElementById('password').value;
+    // Get the phone number and password values
+    let phoneNumber = document.getElementById('phone').value;
+    let password = document.getElementById('password').value;
 
-    // Create payload object
-    var payload = {
-        'phoneNumber': phone,
-        'password': password
-    };
+    // Try to send the POST request to the /login endpoint
+    try {
+        let response = await fetch('http://127.0.0.1:5000/login', {  // Adjust URL as needed
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ phoneNumber, password })  // Send the payload
+        });
 
-    // Send POST request to /login endpoint
-    fetch('http://127.0.0.1:5000/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status) {
-            // Redirect to dashboard or handle success as needed
-            window.location.href = '../../bms/templates/adminDashboard.html';  // Replace with your actual dashboard URL
+        let result = await response.json();  // Parse the JSON response
+        if (result.status) {
+            console.log('>>>>>>>>token', result.token);
+            localStorage.setItem('token', result.token); // Store the token in local storage
+            window.location.href = '/bms/templates/usersDashboard.html'; // Redirect to the dashboard
         } else {
-            // Handle login failure (e.g., show error message)
-            console.log(data.log);
+            alert(result.log);  // Show an error message if login fails
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
-    });
-});
+        alert('An error occurred. Please try again.');  // Handle any network or other errors
+    }
+};
 

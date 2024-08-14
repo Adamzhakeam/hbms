@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const role = document.getElementById('role').value;
 
         const payload = {
-            role,
+            'role':role,
             others: { 'userName': 'camero' }
         };
 
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (roles && roles.length) {
             roles.forEach(role => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
+                row.innerHTML = `●●●●●
                     <td>${role.roleId}</td>
                     <td>${role.role}</td>
                     <td>${JSON.stringify(role.others)}</td>

@@ -3,14 +3,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const createUserModal = document.getElementById('createUserModal');
     const closeModal = document.querySelector('.close');
     const createUserForm = document.getElementById('createUserForm');
-    const roleSelect = document.getElementById('role');
+    const roleSelect = document.getElementById('roles');
     const userTableBody = document.getElementById('userTableBody');
 
     // Fetch all roles and populate dropdown
     fetch('http://127.0.0.1:5000/fetchAllRoles', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token here
         }
     })
     .then(response => response.json())
@@ -64,7 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('http://127.0.0.1:5000/addUser', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token here
             },
             body: JSON.stringify(payload)
         })
@@ -87,7 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
         fetch('http://127.0.0.1:5000/fetchAllUsers', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token here
             }
         })
         .then(response => response.json())
@@ -137,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return fetch('http://127.0.0.1:5000/fetchRole', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}` // Include token here
             },
             body: JSON.stringify({ roleId: roleId })
         })

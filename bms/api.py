@@ -1,66 +1,112 @@
-from flask import Flask,request,jsonify,session, redirect, url_for
+from flask import Flask,request,jsonify,session, redirect, url_for,render_template,make_response
+# from flask_sqlalchemy import SQL
 from functools import wraps
 from flask_cors import CORS
 import kisa_utils as kutils
-from flask_session import Session
+import jwt
+from datetime import datetime, timedelta
+from auth_utils import generate_token, decode_token
+# import logging
 import os
 
 app = Flask(__name__)
 CORS(app)
+app.config['SECRET_KEY'] = kutils.config.getValue('bmsDb/SECRETE_KEY')
 
-# cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 
-app.config['SECRETE_KEY'] = kutils.config.getValue('bmsDb/SECRETE_KEY')
-app.config['SESSION_TYPE'] = kutils.config.getValue('bmsDb/SESSION_TYPE')
-app.config['SESSION_PERMANENT'] = kutils.config.getValue('bmsDb/SESSION_PERMANENT')
-app.config['SESSION_USER_SIGNER'] = kutils.config.getValue('bmsDb/SESSION_USER_SIGNER')
-Session(app)
-
-# this function is responsible for protecting routes 
-from flask import Flask, session, request, jsonify
-from functools import wraps
-
-app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # You should use a secure key for your application
-
-# Example public route
-@app.route('/login', methods=['POST'])
-def login():
-    # Login logic here
-    return "Login Page"
-
-def checkLoggedIn():
-    def wrapper(func):
-        @wraps(func)
-        def decoratedView(*args, **kwargs):
-            if 'roleId' in session:
-                return func(*args, **kwargs)
-            else:
-                # Redirect to login page if not logged in
-                return redirect(url_for('/home/predator/Documents/hbms/bms/templates/index.html'))
-        return decoratedView
-    return wrapper
-
-def checkUserRole(accepted_roles):
+def role_required(allowed_roles):
     from db import fetchRole
-    def wrapper(func):
-        @wraps(func)
-        def decoratedView(*args, **kwargs):
-            if 'roleId' in session:
-                role_details = {'roleId': session['roleId']}
-                role_fetch_response = fetchRole(role_details)
-                if role_fetch_response['status'] and role_fetch_response['log'][0]['role'] in accepted_roles:
-                    return func(*args, **kwargs)
-                return jsonify({'status': False, 'log': 'Unauthorized access'})
-            return jsonify({'status': False, 'log': 'Login required to access this resource'}), 401
-        return decoratedView
-    return wrapper
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token = request.headers.get('Authorization')
 
-           
+            if not token:
+                return jsonify({'status': False, 'log': 'Token is missing'}), 403
+
+            try:
+                # Extract the token from the 'Bearer' format
+                token = token.split()[1]
+            except IndexError:
+                return jsonify({'status': False, 'log': 'Token format is invalid'}), 403
+
+            try:
+                # Decode the token to get user data
+                data = decode_token(token, app.config['SECRET_KEY'])
+                print("newdecorator>>>>>>>>>>>>>>>>>>>>",data)
+                if not data:
+                    return jsonify({'status': False, 'log': 'Token is invalid or expired'}), 403
+
+                roleFetchResult = fetchRole({'roleId':data['role_id']})
+                
+                if roleFetchResult['status']:
+                    if roleFetchResult['log'][0]['role'] not in allowed_roles:
+                        return jsonify({'status': False, 'log': 'Permission denied'}), 403
+                else:
+                    return jsonify({'status': False, 'log': 'Permission denied'}), 403
+            except:
+                return jsonify({'status': False, 'log': 'Invalid token'}), 403
+
+            # Check if the user's role is in the allowed roles
+            # if user_role not in allowed_roles:
+            #     return jsonify({'status': False, 'log': 'Permission denied'}), 403
+
+            return f(*args, **kwargs)
+        
+        return decorated_function
+    return decorator
+
+def token_required(roles):
+    from db import fetchRole
+    
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            token = request.headers.get('Authorization')
+
+            if not token:
+                return jsonify({'status': False, 'log': 'Token is missing'}), 403
+
+            # Extract the token from the 'Bearer' format
+            try:
+                token = token.split()[1]
+                print('>>>>>>>>>>>>>>>>token >>>',token)
+            except IndexError:
+                return jsonify({'status': False, 'log': 'Token format is invalid'}), 403
+
+            try:
+                data = decode_token(token, app.config['SECRET_KEY'])
+                if not data:
+                    return jsonify({'status': False, 'log': 'Token is invalid or expired'}), 403
+
+                roleFetchResult = fetchRole({'roleId':data['role_id']})
+                
+                if roleFetchResult['status']:
+                    if roleFetchResult['log'][0]['role'] not in roles:
+                        return jsonify({'status': False, 'log': 'Permission denied'}), 403
+                else:
+                    return jsonify({'status': False, 'log': 'Permission denied'}), 403
+
+
+                # if data['role_id'] not in roles:
+                #     print('>>>>>>>>>>>>>>>>>>>>>>>>>roleId',data['role_id'])
+                #     return jsonify({'status': False, 'log': 'Permission denied'}), 403
+
+                # Attach user data to the request
+                request.user = data
+            except Exception as e:
+                return jsonify({'status': False, 'log': 'Token is invalid'}), 403
+
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+
+
+                
 # ---- these are routes to handle products activities in the database ----
 @app.route('/registerProduct',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+
 def handleRegisterProduct():
     from db import insertProductIntoDb
     '''
@@ -99,7 +145,8 @@ def handleRegisterProduct():
                     'status':False,
                     'log': f'the value for {key} is missing please provide it '
                 }
-    productinsertionresponse = insertProductIntoDb(payload)
+    productinsertionresponse = insertProductIntoDb(payload)# )
+
     return jsonify(productinsertionresponse)
 
 @app.route('/fetchAllProducts', methods=['POST'])
@@ -556,6 +603,7 @@ def handleFetchProductSaleOnSpecificDateFromTo():
 # ------the module below is responsible fo handling user and roles  related endpoints 
 
 @app.route('/addUser',methods=['POST'])
+@role_required(['manager'])
 # @checkLoggedIn()
 # @checkUserRole(['manager','admin'])
 def handleAdduser():
@@ -605,54 +653,67 @@ def handleFetchAllUsers():
     response = fetchAllUsers()
     return jsonify(response)
 
-@app.route('/login',methods=['POST'])
-def handlelogin():
+
+
+@app.route('/login', methods=['POST'])
+def login():
     from db import login
-    payload = request.get_json()
-    payloadStructure = {
-        'phoneNumber':kutils.config.getValue('bmsDb/phoneNumber'),
-        'password':kutils.config.getValue('bmsDb/password')
-    }
-    loginValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
-    if loginValidationResponse['status']:
-        for key in payload:
-            if not payload[key]:
-                return jsonify({
-                    'status': False,
-                    'log': f'The value for {key} is missing. Please provide it.'
-                })
-        
-        loginResponse  = login(payload)
-        
-        if loginResponse['status']:
-            user = loginResponse['log'][0]
-            session['userId'] = user['userId']
-            session['userName'] = user['userName']
-            session['roleId'] = user['roleId']
-            
+    data = request.get_json()
+    phoneNumber = data.get('phoneNumber')
+    password = data.get('password')
+    user = login({'phoneNumber': phoneNumber, 'password': password})
+    if user['status']:
+            user_id = user['log'][0]['userId']
+            role_id = user['log'][0]['roleId']
+            user_name = user['log'][0]['userName']
+            token = generate_token(user_id, role_id, user_name, app.config['SECRET_KEY'])
+            print('>>>>>>>token',token)
+            return jsonify({'status': True,'token': token})
     
-        return  jsonify(loginResponse)
-    return jsonify(loginValidationResponse)
+    return jsonify({'status': False, 'log': 'Invalid credentials'})
+    # return render_template('login.html')
 
-@app.route('/profile')
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-def profile():
-    if 'userId' in session:
-        userId = session['userId']
-        userName = session['userName']
-        roleId = session['roleId']
+
+
+@app.route('/profile', methods=['POST'])
+@token_required(['user', 'manager', 'admin'])
+def dashboard():
+    print('>>>>>>>>>>working')
+    userName = request.user['user_name']
+    print(">>>>>>>>userName",userName)
+    roleId = request.user['role_id']
+    from db import fetchRole
+    roleList = fetchRole({'roleId':roleId})
+    if roleList['status']:
+        role = roleList['log'][0]['role']
+        print(">>>>>role>>>",role)
+    else:
+        role = 'Unknown'
+    return jsonify({'status': True, 'userName': userName, 'role': role})
+
+
+
+# @app.route('/profile',methods=['POST'])
+# # @loginRequired(['user','manager','admin'])
+# # @checkLoggedIn()
+# # @checkUserRole(['manager','admin'])
+# def profile():
+#     if 'userId' in session:
+#         print('working MF')
+#         userId = session['userId']
+#         userName = session['userName']
+#         roleId = session['roleId']
         
-        return jsonify({'userId':userId,'userName':userName,'role':roleId})
-    return jsonify({'status':False,'log':'User is not logged in'})
+#         print(userName)
+        
+#         return jsonify({'userId':userId,'userName':userName,'role':roleId})
+#     # logging.debug(f'you need to login first')
+#     return render_template('index.html')
 
-@app.route('/logoutUser')
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-def handleLogoutUser():
-    session.clear()
-    return jsonify({'status':True, 'log':'Logged Out Successfully'}) 
-
+# @app.route('/logout')
+# def logout():
+#     session.clear()
+#     return jsonify({'log':'logged out successfuly '})
 # ---the module below is responsible for handling all the credit endpoints
 # -------module for credit endpoints-----------
 
@@ -727,6 +788,7 @@ def handleCreateRole():
         'others':kutils.config.getValue('bmsDb/others')
        
     }
+    print('>>>>>>>>>>>>creating a role',payload)
     validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
     
     if validationResponse['status']:

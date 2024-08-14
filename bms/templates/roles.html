@@ -1,14 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Role</title>
-    <link rel="stylesheet" href="../../bms/static/roles.css">
+    <!DOCTYPE html>
+    <html>
     <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Responsive Header</title>
+        <title>Dashboard</title>
         <style>
             /* Inline CSS for header styling */
             body, html {
@@ -57,52 +53,97 @@
                 .header .user-info {
                     font-size: 0.9em;
                 }
+                .Welcome{
+                  font-size: 1px;
+                }
             }
         </style>
     </head>
-    <body>
+    <body class="heading">
         <div class="header">
             <h1 id="greeting"></h1>
             <div class="user-info" id="user-info"></div>
             <div class="buttons">
                 <button onclick="goHome()">Home</button>
-                <button onclick="logout()">Logout</button>
+                <button id="logout">Logout</button>
             </div>
         </div>
     
-        <script>
-            // JavaScript for greeting according to the time of day and displaying user info
-            document.addEventListener('DOMContentLoaded', () => {
-                const userName = "John Doe"; // Replace with the actual user's name
-                const greetingElement = document.getElementById('greeting');
-                const userInfoElement = document.getElementById('user-info');
-                const currentHour = new Date().getHours();
-                let greeting;
+         <p class="Welcome">Welcome, <span id="userName"></span></p>
+        <p class="Welcome">Your role: <span id="mainRole"></span></p> 
     
-                if (currentHour < 12) {
-                    greeting = "Good Morning";
-                } else if (currentHour < 18) {
-                    greeting = "Good Afternoon";
-                } else {
-                    greeting = "Good Evening";
+        <script>
+            // Function to fetch user data
+            async function fetchUserData() {
+                let token = localStorage.getItem('token');
+                console.log('>>>>>>>>>token', token);
+                if (!token) {
+                    alert('User not authenticated');
+                    window.location.href = '/bms/templates/index.html';
+                    return;
                 }
     
-                greetingElement.textContent = `${greeting},`;
-                userInfoElement.textContent = `Logged in as: ${userName}`;
-            });
+                try {
+                    let response = await fetch('http://127.0.0.1:5000/profile', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
     
+                    let result = await response.json();
+                    if (result.status) {
+                        document.getElementById('userName').innerText = result.userName;
+                        document.getElementById('mainRole').innerText = result.role;
+    
+                        // Set the greeting and user info in the header
+                        const greetingElement = document.getElementById('greeting');
+                        const userInfoElement = document.getElementById('user-info');
+                        const currentHour = new Date().getHours();
+                        let greeting;
+    
+                        if (currentHour < 12) {
+                            greeting = "Good Morning";
+                        } else if (currentHour < 18) {
+                            greeting = "Good Afternoon";
+                        } else {
+                            greeting = "Good Evening";
+                        }
+    
+                        greetingElement.textContent = `${greeting},`;
+                        userInfoElement.textContent = `Logged in as: ${result.userName}`;
+                    } else {
+                        alert(result.log);
+                        window.location.href = '/bms/templates/index.html';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to fetch user data');
+                    window.location.href = '/bms/templates/index.html';
+                }
+            }
+    
+            // Fetch user data on page load
+            window.onload = fetchUserData;
+    
+            // Home button function
             function goHome() {
-                // Redirect to home page
-                window.location.href = 'file:///home/predator/Documents/hbms/bms/templates/usersDashboard.html'; // Adjust URL as needed
+                window.location.href = '/bms/templates/usersDashboard.html'; // Adjust URL as needed
             }
     
-            function logout() {
-                // Redirect to logout page or perform logout action
-                window.location.href = '/logout'; // Adjust URL as needed
-            }
+            // Logout function
+            document.getElementById('logout').onclick = function() {
+                localStorage.removeItem('token');  // Clear the token from local storage
+                window.location.href = '/bms/templates/index.html';  // Redirect to the login page
+            };
         </script>
     </body>
     </html>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Role</title>
+    <link rel="stylesheet" href="../../bms/static/roles.css">
+    
 </head>
 <body id="roles">
     <div class="container">
