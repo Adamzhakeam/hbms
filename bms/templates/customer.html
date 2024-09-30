@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+    <link rel="stylesheet" href="../../bms/static/customer.css">
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Dashboard</title>
+        <style>
+            /* Inline CSS for header styling */
+            body, html {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+            }
+            .header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px 20px;
+                background-color: #4CAF50; /* Change as needed */
+                color: white;
+            }
+            .header h1 {
+                margin: 0;
+                font-size: 1.5em;
+            }
+            .header .buttons {
+                display: flex;
+                gap: 10px;
+            }
+            .header .buttons button {
+                padding: 5px 10px;
+                border: none;
+                background-color: #fff;
+                color: #4CAF50; /* Change as needed */
+                cursor: pointer;
+                font-size: 1em;
+            }
+            .header .buttons button:hover {
+                background-color: #ddd;
+            }
+            .header .user-info {
+                font-size: 1em;
+            }
+            @media (max-width: 600px) {
+                .header h1 {
+                    font-size: 1.2em;
+                }
+                .header .buttons button {
+                    padding: 5px 8px;
+                    font-size: 0.9em;
+                }
+                .header .user-info {
+                    font-size: 0.9em;
+                }
+                .Welcome{
+                  font-size: 0.1px;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1 id="greeting"></h1>
+            <div class="user-info" id="user-info"></div>
+            <div class="buttons">
+                <button onclick="goHome()">Home</button>
+                <button id="logout">Logout</button>
+            </div>
+        </div>
+    
+         <p class="Welcome">Welcome, <span id="userName"></span></p>
+        <p class="Welcome">Your role: <span id="role"></span></p> 
+    
+        <script>
+            // Function to fetch user data
+            async function fetchUserData() {
+                let token = localStorage.getItem('token');
+                console.log('>>>>>>>>>token', token);
+                if (!token) {
+                    alert('User not authenticated');
+                    window.location.href = '/bms/templates/index.html';
+                    return;
+                }
+    
+                try {
+                    let response = await fetch('http://127.0.0.1:5000/profile', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+    
+                    let result = await response.json();
+                    if (result.status) {
+                        document.getElementById('userName').innerText = result.userName;
+                        document.getElementById('role').innerText = result.role;
+    
+                        // Set the greeting and user info in the header
+                        const greetingElement = document.getElementById('greeting');
+                        const userInfoElement = document.getElementById('user-info');
+                        const currentHour = new Date().getHours();
+                        let greeting;
+    
+                        if (currentHour < 12) {
+                            greeting = "Good Morning";
+                        } else if (currentHour < 18) {
+                            greeting = "Good Afternoon";
+                        } else {
+                            greeting = "Good Evening";
+                        }
+    
+                        greetingElement.textContent = `${greeting},`;
+                        userInfoElement.textContent = `Logged in as: ${result.userName}`;
+                    } else {
+                        alert(result.log);
+                        window.location.href = '/bms/templates/index.html';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Failed to fetch user data');
+                    window.location.href = '/bms/templates/index.html';
+                }
+            }
+    
+            // Fetch user data on page load
+            window.onload = fetchUserData;
+    
+            // Home button function
+            function goHome() {
+                window.location.href = '/bms/templates/usersDashboard.html'; // Adjust URL as needed
+            }
+    
+            // Logout function
+            document.getElementById('logout').onclick = function() {
+                localStorage.removeItem('token');  // Clear the token from local storage
+                window.location.href = '/bms/templates/index.html';  // Redirect to the login page
+            };
+        </script>
+    </body>
+    </html>
+</head>
+<body>
+    <div class="container">
+        <h1>Customer Management</h1>
+
+        <!-- Register Customer Form -->
+        <div id="registerCustomerContainer">
+            <h2>Register Customer</h2>
+            <form id="registerCustomerForm">
+                <label for="customerName">Customer Name:</label>
+                <input type="text" id="customerName" name="customerName" required>
+
+                <label for="customerPhoneNumber">Customer Phone Number:</label>
+                <input type="text" id="customerPhoneNumber" name="customerPhoneNumber" required>
+
+                <label for="customerLocation">Customer Location:</label>
+                <input type="text" id="customerLocation" name="customerLocation" required>
+
+                <button type="submit">Register Customer</button>
+            </form>
+        </div>
+
+        <!-- Fetch Customers -->
+        <!-- <div id="fetchCustomersContainer">
+            <h2>Customers</h2>
+            <button id="fetchAllCustomersBtn">Fetch All Customers</button>
+
+            <form id="fetchCustomerForm">
+                <label for="customerId">Customer ID:</label>
+                <input type="text" id="customerId" name="customerId" required>
+                <button type="submit">Fetch Customer</button>
+            </form> -->
+
+            <table id="customersTable">
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Customer Name</th>
+                        <th>Phone Number</th>
+                        <th>Location</th>
+                        <th>Others</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <!-- Customers data will be appended here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="../../bms/static/customer.js"></script>
+</body>
+</html>

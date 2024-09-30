@@ -1,0 +1,135 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+#app {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+    color: #2E8B57; /* Army Green */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.product-input {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+button {
+    background-color: #2E8B57; /* Army Green */
+    color: #fff;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #3CB371; /* Lighter Army Green */
+}
+
+/* Responsive Design */
+@media (max-width: 600px) {
+    #app {
+        padding: 10px;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* ---this is the index.hmtl css modules below */
+/* Reset default margin and padding */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body styles */
+#login {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0; /* Light background color */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* Login container styles */
+.login-container {
+    width: 100%;
+    max-width: 360px; /* Adjust max-width as needed */
+    padding: 20px;
+    background-color: #ffffff; /* White background */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Shadow for box effect */
+}
+
+/* Form styles */
+.login-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333333; /* Dark text color */
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+label {
+    font-weight: bold;
+    color: #555555; /* Medium dark text color */
+}
+
+input[type="tel"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #dddddd; /* Light gray border */
+    border-radius: 4px;
+}
+
+button {
+    background-color: #4CAF50; /* Army green button */
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049; /* Darker shade on hover */
+}
+
+

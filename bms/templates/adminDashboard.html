@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Admin Dashboard | predator #serial RawDawger </title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/1.0.1/Chart.min.js"></script>
+    <!-- ======= Styles ====== -->
+    <link rel="stylesheet" href="../../bms/static/admin.css">
+</head>
+
+<body>
+    <!-- =============== Navigation ================ -->
+    <div class="container">
+        <div class="navigation">
+            <ul>
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="logo-apple"></ion-icon>
+                        </span>
+                        <span class="title">ACUTIVA AUTO SHOP</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="home-outline"></ion-icon>
+                        </span>
+                        <span class="title">Dashboard</span>
+                    </a>
+                </li>
+
+                <!-- <ul> -->
+                    <li>
+                        <a href="file:///home/predator/Documents/hbms/bms/templates/customer.html">
+                            <span class="icon">
+                                <ion-icon name="people-outline"></ion-icon>
+                            </span>
+                            <span class="title">Customers</span>
+                        </a>
+                    </li>
+                <!-- </ul> -->
+                
+                <!-- Include the Ionicons library -->
+                <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons.js"></script>
+                <li>
+                    <a href="file:///home/predator/Documents/hbms/bms/templates/users.html">
+                        <span class="icon">
+                            <ion-icon name="person"></ion-icon>
+                        </span>
+                        <span class="title">Users</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="card"></ion-icon>
+                        </span>
+                        <span class="title">Expenses</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="car"></ion-icon>
+                        </span>
+                        <span class="title">Suppliers</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="lock-closed-outline"></ion-icon>
+                        </span>
+                        <span class="title">Password</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#">
+                        <span class="icon">
+                            <ion-icon name="log-out-outline"></ion-icon>
+                        </span>
+                        <span class="title">Sign Out</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- ========================= Main ==================== -->
+        <div class="main">
+            <div class="topbar">
+                <div class="toggle">
+                    <ion-icon name="menu-outline"></ion-icon>
+                </div>
+
+                <div class="search">
+                    <label>
+                        <input type="text" placeholder="Search here">
+                        <ion-icon name="search-outline"></ion-icon>
+                    </label>
+                </div>
+
+                <div class="user">
+                    <img src="assets/imgs/customer01.jpg" alt="">
+                </div>
+            </div>
+
+            <!-- ======================= Cards ================== -->
+            <div class="cardBox">
+                <div class="card" id="productCard">
+                    <div>
+                        <div class="numbers" id="totalNumberOfProducts">0</div>
+                        <div class="cardName">Total Products</div>
+                    </div>
+                    <div class="iconBx">
+                        <ion-icon name="eye-outline"></ion-icon>
+                    </div>
+                </div>
+                
+                <!-- Include the Ionicons library -->
+                <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons.js"></script>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const productCard = document.getElementById('productCard');
+                        productCard.addEventListener('click', () => {
+                            window.location.href = 'file:///home/predator/Documents/hbms/bms/templates/productDetails.html';
+                        });
+                    });
+                </script>
+                
+                
+                <div class="card" id="salesCard">
+                    <div>
+                        <div class="numbers" id="totalSales">0</div>
+                        <div class="cardName">Sales</div>
+                    </div>
+                    <div class="iconBx">
+                        <ion-icon name="cart-outline"></ion-icon>
+                    </div>
+                </div>
+                
+                <!-- Include the Ionicons library -->
+                <script src="https://unpkg.com/ionicons@5.5.2/dist/ionicons.js"></script>
+                
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const productCard = document.getElementById('salesCard');
+                        productCard.addEventListener('click', () => {
+                            window.location.href = 'file:///home/predator/Documents/hbms/bms/templates/salesDetails.html';
+                        });
+                    });
+                </script>
+                
+                
+                <div class="card">
+                    <div>
+                        <div class="numbers">284</div>
+                        <div class="cardName">Comments</div>
+                    </div>
+
+                    <div class="iconBx">
+                        <ion-icon name="chatbubbles-outline"></ion-icon>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div>
+                        <div class="numbers" id="totalAmountPaid">ugx0.00</div>
+                        <div class="cardName">Earning</div>
+                    </div>
+                    <div class="iconBx">
+                        <ion-icon name="cash-outline"></ion-icon>
+                    </div>
+                </div>
+                
+            </div>
+
+            <!-- ================ Order Details List ================= -->
+        <div class="details">
+                <!-- <div class="recentOrders"> -->
+                    <div class="col-md-5 my-5 mx-auto">
+                        <div class="card text-center shadow">
+                            <div class="card-header text-left"><b>Chart.js</b> - Pie Chart with Legends</div>
+                            <div class="card-body">
+                                <div class="chart">
+                                    <canvas id="property_types" class="pie"></canvas>
+                                    <div id="pie_legend" class="py-3 text-left col-md-7 mx-auto"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <!-- </div> -->
+            
+            
+
+                <!-- ================= Settings and Other Pages  ================ -->
+                <div class="recentCustomers">
+                    <div class="cardHeader">
+                        <h2>Settings and Pages </h2>
+                    </div>
+
+                    <table>
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/category.html'">
+                            <td width="60px">
+                                <div class="imgBx"><ion-icon name="git-compare"></ion-icon></div>
+                            </td>
+                            <td>
+                                <h4>Categories <br> <span>Create or Edit</span></h4>
+                            </td>
+                        </tr>
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/units.html'">
+                            <td width="60px">
+                                <span class="icon">
+                                    <ion-icon name="logo-steam"></ion-icon>
+                                </span>
+                                <!-- <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div> -->
+                            </td>
+                            <td>
+                                <h4>Units <br> <span>Create Or Edit</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/roles.html'">
+                            <td width="60px">
+                                <div class="imgBx"><ion-icon name="link"></ion-icon></div>
+                            </td>
+                            <td>
+                                <h4>Roles <br> <span>Create OR Edit</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/products.html'">
+                            <td width="60px">
+                                <div class="imgBx"><ion-icon name="cart"></ion-icon></div>
+                            </td>
+                            <td>
+                                <h4>Products<br> <span>Create</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/productSales.html'">
+                            <td width="60px">
+                                <div class="imgBx"><ion-icon name="analytics"></ion-icon></div>
+                            </td>
+                            <td>
+                                <h4>ProductSales<br> <span>View  </span></h4>
+                            </td>
+                        </tr>
+
+                        <tr onclick="window.location.href='file:///home/predator/Documents/hbms/bms/templates/credits.html'">
+                            <td width="60px">
+                                <div class="imgBx"><ion-icon name="cash"></ion-icon></div>
+                            </td>
+                            <td>
+                                <h4>creditor <br> <span>view AND Edit</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer01.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>David <br> <span>Italy</span></h4>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td width="60px">
+                                <div class="imgBx"><img src="assets/imgs/customer02.jpg" alt=""></div>
+                            </td>
+                            <td>
+                                <h4>Amit <br> <span>India</span></h4>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========== Scripts =========  -->
+    <script src="../../bms/static/admin.js"></script>
+
+    <!-- ====== ionicons ======= -->
+    <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,169 @@
+:root {
+    --primary-color: #4B5320;
+    --secondary-color: #EAEAEA;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 20px;
+    background-color: var(--secondary-color);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    overflow: hidden;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.1);
+}
+
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+button {
+    display: inline-block;
+    margin-right: 10px;
+    padding: 15px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: black;
+}
+
+.date-range-container {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.date-range-container select,
+.date-range-container input[type="date"] {
+    flex: 1 1 auto;
+    min-width: 150px;
+}
+
+.date-range-container select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23191919' viewBox='-2 -2 7 7'%3E%3Cpath d='M0 0l3 3 3-3z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right center;
+    background-size: 20px auto;
+    padding-right: 40px;
+    padding-left: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    height: 38px;
+    outline: none;
+}
+
+.date-range-container input[type="date"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    font-size: 16px;
+    width: 150px;
+}
+
+table.sales-report {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table.sales-report th,
+table.sales-report td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+table.sales-report th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: bold;
+}
+
+table.sales-report tbody tr:nth-child(even) {
+    background-color: #f5f5f5;
+}
+
+table.sales-report tbody tr:hover {
+    background-color: #e9e9e9;
+}
+
+table.sales-report tfoot {
+    font-style: italic;
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    button {
+        width: 100%;
+        margin: 10px 0;
+        padding: 12px;
+    }
+
+    .date-range-container {
+        flex-direction: column;
+    }
+
+    .date-range-container select,
+    .date-range-container input[type="date"] {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    table.sales-report th,
+    table.sales-report td {
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.2em;
+    }
+
+    table.sales-report th,
+    table.sales-report td {
+        font-size: 14px;
+        padding: 6px 8px;
+    }
+
+    .container {
+        padding: 10px;
+    }
+}
