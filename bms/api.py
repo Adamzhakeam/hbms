@@ -6,13 +6,112 @@ import kisa_utils as kutils
 import jwt
 from datetime import datetime, timedelta
 from auth_utils import generate_token, decode_token
+from flask_mail import Mail, Message
 # import logging
 import os
 
 app = Flask(__name__)
 CORS(app)
 app.config['SECRET_KEY'] = kutils.config.getValue('bmsDb/SECRETE_KEY')
+# Configure Flask-Mail with your SMTP server details
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587 #465
+app.config['MAIL_USERNAME'] = kutils.config.getValue('bmsDb/email')#  # Your email
+app.config['MAIL_PASSWORD'] = kutils.config.getValue('bmsDb/mailPassword')   # Your email password or app-specific password
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False 
 
+mail = Mail(app)
+
+@app.route("/sendMail", methods=['POST'])
+def sendMail():
+    '''
+    This endpoint is responsible for sending emails
+    '''
+    payload = request.get_json()
+    if not payload:
+        return jsonify({'status': False, 'log': 'Payload is missing or invalid'})
+    
+    print(f"Payload received: {payload}")
+    
+    payloadStructure = {
+        'subject': kutils.config.getValue('bmsDb/subject'),
+        'recipients': kutils.config.getValue('bmsDb/recipients'),
+        'message': kutils.config.getValue('bmsDb/message')
+    }
+    
+    payloadValidationResponse = kutils.structures.validator.validate(payload, payloadStructure)
+    # print(f"Payload validation status: {payloadValidationResponse['status']}")
+    
+    if payloadValidationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({'status': False, 'log': f"The value for {key} is missing, please provide it"})
+        
+        # print(f"Recipients: {payload.get('recipients')}")
+        
+        
+        for recipient in payload['recipients']:
+            # print('>>>> Running recipient loop')
+            if not isinstance(recipient, str):
+                return jsonify({'status': False, 'log': f"The recipient {recipient} expects strings in the list"})
+        
+        msg = Message(
+            payload['subject'],
+            sender='your business Point Of Sale System',
+            recipients=payload['recipients']
+        )
+        msg.body = payload['message']
+        
+        with app.app_context():
+            mail.send(msg)
+        
+        return jsonify({'status': True, 'log': ''})
+    
+    return jsonify(payloadValidationResponse)
+
+def sendDynamicMail(mailDetails:dict)->dict:
+    '''
+        this function is responsible for sending emails
+        the expected keys are 'recipients','message','subject' 
+    '''
+    print('>>>>>>>',len(mailDetails['recipients']))
+    if not len(mailDetails['recipients']):
+        return jsonify({'status':False,'log':'no recipients to sendmail to '})
+    print('>>>>>>>>>>>>>>>>>>>>>>')
+    msg = Message(
+            mailDetails['subject'],
+            sender='your business Point Of Sale System',
+            recipients=mailDetails['recipients']
+        )
+    msg.body = mailDetails['message']
+        
+    with app.app_context():
+            mail.send(msg)
+        
+    return jsonify({'status': True, 'log': ''})
+    
+
+# ----------------------------the endpoint below is responsible for resetting product discount ---
+@app.route('/resetProductDiscount',methods=['POST'])
+def resetProductDiscount():
+    '''
+        this endpoint is responsible for resetting product discount
+        and then sending mail to the manager for the updated discounts  
+    '''
+    from db import resetProductDiscountDetails
+    resetResponse = resetProductDiscountDetails()
+    if resetResponse['status']:
+        
+        message = resetResponse.get('updatedProducts','')
+        print('>>>>>>',message)
+        recipients = ['magezibrian108@gmail.com','receipereadalive@gmail.com'] 
+        subject = 'the following products there discounts have expired and have been reset'
+        mailResponse  = sendDynamicMail({'message':message,'recipients':recipients,'subject':subject})
+        return mailResponse
+    return jsonify(resetResponse['log'])
+        
+# ------------------------------
 
 def role_required(allowed_roles):
     from db import fetchRole
@@ -101,6 +200,42 @@ def token_required(roles):
         return decorated_function
     return decorator
 
+# -----the endpoints below are responsible for logging in 
+@app.route('/login', methods=['POST'])
+def login():
+    from db import login
+    data = request.get_json()
+    phoneNumber = data.get('phoneNumber')
+    password = data.get('password')
+    user = login({'phoneNumber': phoneNumber, 'password': password})
+    if user['status']:
+            user_id = user['log'][0]['userId']
+            role_id = user['log'][0]['roleId']
+            user_name = user['log'][0]['userName']
+            token = generate_token(user_id, role_id, user_name, app.config['SECRET_KEY'])
+            return jsonify({'status': True,'token': token})
+    
+    return jsonify({'status': False, 'log': 'Invalid credentials'})
+    # return render_template('login.html')
+
+
+
+@app.route('/profile', methods=['POST'])
+@token_required(['user', 'manager', 'admin'])
+def dashboard():
+    userName = request.user['user_name']
+    roleId = request.user['role_id']
+    from db import fetchRole
+    roleList = fetchRole({'roleId':roleId})
+    if roleList['status']:
+        role = roleList['log'][0]['role']
+        
+    else:
+        role = 'Unknown'
+    
+    return jsonify({'status': True, 'userName': userName, 'role': role})
+
+
 
 
                 
@@ -150,8 +285,7 @@ def handleRegisterProduct():
     return jsonify(productinsertionresponse)
 
 @app.route('/fetchAllProducts', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+
 def handleFetchAllProducts():
     from db import fetchAllProducts
     '''
@@ -162,9 +296,7 @@ def handleFetchAllProducts():
     return jsonify(response)
 
 @app.route('/fetchAllProductsWithWarningStock', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-# @loginRequired()
+
 def handleFetchAllProductsWithWarningStock():
     from db import fetchAllProductsWithWarningStock
     '''
@@ -176,9 +308,6 @@ def handleFetchAllProductsWithWarningStock():
 
 
 @app.route('/fetchSpecificProduct', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-# @loginRequired()
 
 def handleFetchSpecificProduct():
     from db import fetchSpecificProduct
@@ -198,9 +327,6 @@ def handleFetchSpecificProduct():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductById', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-# @loginRequired()
 
 def handleFetchSpecificProductById():
     from db import fetchSpecificProductById
@@ -222,9 +348,6 @@ def handleFetchSpecificProductById():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductByCategory', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-# @loginRequired()
 
 def handleFetchSpecificProductByCategory():
     from db import fetchSpecificProductByCategory
@@ -383,7 +506,7 @@ def handleFetchSpecificCustomer():
     these include these include fetching,editing,deleting and adding
 '''
 @app.route('/addSale', methods=['POST'])
-
+@token_required(['admin','user','manager'])
 def handleAddSale():
     '''
         This endpoint is responsible for adding an entire sale to the database.
@@ -395,6 +518,8 @@ def handleAddSale():
     payload['saleId'] = 'saleId'+kutils.codes.new()
     payload['timestamp'] = kutils.dates.currentTimestamp()
     payload['dateSold'] = kutils.dates.today()
+    payload['others'] = {'userName':request.user['user_name']}
+    payload['soldBy'] = request.user['user_name']
 
     payloadStructure = {
         'entryId': kutils.config.getValue('bmsDb/entryId'),
@@ -428,8 +553,8 @@ def handleAddSale():
             return jsonify(addSaleResponse)
         # print('!!!!!!!!!!!!!!!!===>patch',payload['saleId'])
         addCreditDetailsResponse = addCreditDetailsToDb(payload)
-        print('cerdit',addCreditDetailsResponse)
-        return {'status':True,'log':'sale added succesfully','saleId':payload['saleId']}
+        print('credit',addCreditDetailsResponse)
+        return {'status':True,'log':'sale added successfully','saleId':payload['saleId']}
     
     return jsonify(saleValidationResponse)
 
@@ -477,14 +602,16 @@ def handleFetchSaleOnSpecificDateFromTo():
         
     }
     
-    if not saleDetails['saleDate']:
-        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+    # if not saleDetails['saleDate']:
+    #     return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
 
     response = fetchSpecificSalesFromTo(saleDetails)
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>date from to ',response)
     
     return jsonify(response)
 
 @app.route('/addSingleProductSale', methods=['POST'])
+@token_required(['admin','user','manager'])
 
 def handleAddSingleProductSale():
     '''
@@ -494,21 +621,20 @@ def handleAddSingleProductSale():
     
     
     payload = request.get_json()
-    # workingSaleId = handleAddSale()
-    # print(workingSaleId)
-    # payload['saleId'] = workingSaleId['saleId']
     print('Received payload:', payload)  # Debug: Print received payload
 
     if not payload:
         return jsonify({'status': False, 'log': 'No data provided'}), 400
     
     # Assuming payload is a list of single product sales
+    print('>>>>>>singlepdtsalepayload',payload)
     for productSale in payload:
         productSale['entryId'] = kutils.codes.new()
         productSale['timestamp'] = kutils.dates.currentTimestamp()
         productSale['dateSold'] = kutils.dates.today()
+        productSale['others'] = {'soldBy':request.user['user_name']}
     
-    print('Payload after adding entryId and timestamp:', payload)  # Debug: Print modified payload
+    print('Payload after adding entryId and timestamp:', productSale['others'])  # Debug: Print modified payload
     
     payloadStructure = [{
         'entryId': kutils.config.getValue('bmsDb/entryId'),
@@ -556,8 +682,6 @@ def handleFetchAllProductSales():
     return jsonify(response)
 
 @app.route('/fetchSpecificProductSales', methods=['POST'])
-
-
 def handleFetchProductSaleOnSpecificDate():
     from db import fetchSpecificProductSale
     '''
@@ -576,9 +700,6 @@ def handleFetchProductSaleOnSpecificDate():
     
     return jsonify(response)
 @app.route('/fetchSpecificProductSalesFromTo', methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
-
 def handleFetchProductSaleOnSpecificDateFromTo():
     from db import fetchSpecificProductSalesFromTo
     '''
@@ -604,8 +725,6 @@ def handleFetchProductSaleOnSpecificDateFromTo():
 
 @app.route('/addUser',methods=['POST'])
 @role_required(['manager'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleAdduser():
     '''
     this function is responsible for handling 
@@ -645,81 +764,37 @@ def handleAdduser():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllUsers',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleFetchAllUsers():
     from db import fetchAllUsers
     
     response = fetchAllUsers()
     return jsonify(response)
 
+@app.route('/resetPassword',methods=['POST'])
+def handleResetPassword():
+    '''
+        this endpoint is responsible for handling 
+        resetting users password the expected key in the 
+        payload is 'phoneNumber'
+    '''
+    from db import resetUserPassword
+    payload = request.get_json()
+    payloadStructure = {
+        'phoneNumber':kutils.config.getValue('bmsDb/phoneNumber')
+    }
+    payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    if payloadValidationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({'status':False,'log':f"the value for {key} is missing please provide it "})
+        response = resetUserPassword(payload)
+        return jsonify(response) 
+    return jsonify(payloadValidationResponse)
 
-
-@app.route('/login', methods=['POST'])
-def login():
-    from db import login
-    data = request.get_json()
-    phoneNumber = data.get('phoneNumber')
-    password = data.get('password')
-    user = login({'phoneNumber': phoneNumber, 'password': password})
-    if user['status']:
-            user_id = user['log'][0]['userId']
-            role_id = user['log'][0]['roleId']
-            user_name = user['log'][0]['userName']
-            token = generate_token(user_id, role_id, user_name, app.config['SECRET_KEY'])
-            print('>>>>>>>token',token)
-            return jsonify({'status': True,'token': token})
-    
-    return jsonify({'status': False, 'log': 'Invalid credentials'})
-    # return render_template('login.html')
-
-
-
-@app.route('/profile', methods=['POST'])
-@token_required(['user', 'manager', 'admin'])
-def dashboard():
-    print('>>>>>>>>>>working')
-    userName = request.user['user_name']
-    print(">>>>>>>>userName",userName)
-    roleId = request.user['role_id']
-    from db import fetchRole
-    roleList = fetchRole({'roleId':roleId})
-    if roleList['status']:
-        role = roleList['log'][0]['role']
-        print(">>>>>role>>>",role)
-    else:
-        role = 'Unknown'
-    return jsonify({'status': True, 'userName': userName, 'role': role})
-
-
-
-# @app.route('/profile',methods=['POST'])
-# # @loginRequired(['user','manager','admin'])
-# # @checkLoggedIn()
-# # @checkUserRole(['manager','admin'])
-# def profile():
-#     if 'userId' in session:
-#         print('working MF')
-#         userId = session['userId']
-#         userName = session['userName']
-#         roleId = session['roleId']
-        
-#         print(userName)
-        
-#         return jsonify({'userId':userId,'userName':userName,'role':roleId})
-#     # logging.debug(f'you need to login first')
-#     return render_template('index.html')
-
-# @app.route('/logout')
-# def logout():
-#     session.clear()
-#     return jsonify({'log':'logged out successfuly '})
-# ---the module below is responsible for handling all the credit endpoints
 # -------module for credit endpoints-----------
 
 @app.route('/fetchAllCredits',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+
 def handleFetchAllCredits():
     from db import fetchAllCredits
     
@@ -727,8 +802,7 @@ def handleFetchAllCredits():
     return jsonify(response)
 
 @app.route('/fetchAllUnclearedCredits',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+
 def handleFetchAllUnclearedCredits():
     from db import fetchAllUnClearedCredits
     
@@ -737,20 +811,17 @@ def handleFetchAllUnclearedCredits():
 
 
 @app.route('/editCredit',methods = ['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleEditCredit():
     from db import editCredit
     payload = request.get_json()
     print('....payload recieved',payload)
     payloadStructure = {
-        # 'timestamp':kutils.dates.currentTimestamp(),
+        
         'amountPaid':kutils.config.getValue('bmsDb/amountPaid'),
         'saleId':kutils.config.getValue('bmsDb/saleId'),
         'creditId':kutils.config.getValue('bmsDb/creditId'),
         'paymentStatus':kutils.config.getValue('bmsDb/paymentStatus'),
-        # 'amountInDebt':kutils.config.getValue('bmsDb/amountInDebt')
-        # 'editedBy':kutils.config.getValue('bmsDb/editedBy')
+        
     }
     payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
     
@@ -768,9 +839,9 @@ def handleEditCredit():
 
 # ------below these endpoints handle roles --
 @app.route('/createRole',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+@role_required(['admin'])
 def handleCreateRole():
+    
     '''
         this endpoint is responsible for creating a a role 
         
@@ -807,8 +878,7 @@ def handleCreateRole():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllRoles',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+
 def handleFetchAllRoles():
     from db import fetchAllRoles
     
@@ -816,8 +886,6 @@ def handleFetchAllRoles():
     return jsonify(response)
 
 @app.route('/fetchRole',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleFetchRole():
     from db import fetchRole
     payload = request.get_json()
@@ -843,8 +911,7 @@ def handleFetchRole():
     return jsonify(validationResponse)
 # -----this module is responsible for handling all unit related end points
 @app.route('/createUnit',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
+@token_required(['admin','manager'])
 def handleCreateUnit():
     '''
         this endpoint is responsible for creating a a role 
@@ -855,6 +922,7 @@ def handleCreateUnit():
     payload['entryId'] = kutils.codes.new()
     payload['unitId'] = kutils.codes.new()
     payload['timestamp'] = kutils.dates.currentTimestamp()
+    payload['others'] = {'registeredBy':request.user['user_name']}
     payloadStructure = {
         'entryId':kutils.config.getValue('bmsDb/entryId'),
         'timestamp':kutils.config.getValue('bmsDb/timestamp'),
@@ -881,8 +949,6 @@ def handleCreateUnit():
     return jsonify(validationResponse)
 
 @app.route('/fetchAllUnits',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleFetchAllUnits():
     from db import fetchAllUnits
     
@@ -890,8 +956,6 @@ def handleFetchAllUnits():
     return jsonify(response)
 
 @app.route('/fetchUnit',methods=['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleFetchUnit():
     from db import fetchUnit
     payload = request.get_json()
@@ -919,8 +983,6 @@ def handleFetchUnit():
 
 # --this module is responsible handing all the category endpoints 
 @app.route('/fetchAllCategories',methods = ['POST'])
-# @checkLoggedIn()
-# @checkUserRole(['manager','admin'])
 def handleFetchAllCategories():
     from db import fetchAllCategories
     
@@ -959,13 +1021,317 @@ def handleCreateCategory():
     
     return jsonify(validationResponse)
 
-    
 
+# ------ the following endPoints below are responsible handling expenses ----------
+
+@app.route('/createAnExpense',methods=['POST'])
+def createExpense():
+    '''
+        the following endPoint is responsible for handling adding of an expense to the database 
+        @param: the following are the expected keys in the in the payload
+                'entryId','dateOfExpense','timestamp','dateOfExpense','description','amountSpent'
+    '''
+    from db import addExpenseToDb
+    payload = request.get_json()
+    payload['entryId'] = kutils.codes.new()
+    payload['dateOfExpense'] = kutils.dates.today()
+    payload['timestamp'] = kutils.dates.currentTimestamp()
+    payloadStructure = {
+        'entryId':kutils.config.getValue('bmsDb/entryId'),
+        'timestamp':kutils.config.getValue('bmsDb/timestamp'),
+        'description':kutils.config.getValue('bmsDb/description'),
+        'dateOfExpense':kutils.config.getValue('bmsDb/dateOfExpense'),
+        'amountSpent':kutils.config.getValue('bmsDb/amountSpent'),
+        'others':kutils.config.getValue('bmsDb/others')
+       
+    }
+    validationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if validationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return jsonify({
+                    'status': False,
+                    'log': f'The value for {key} is missing. Please provide it.'
+                })
+        
+        createRoleResponse  = addExpenseToDb(payload)
+        
+        if not createRoleResponse['status']:
+            return jsonify(createRoleResponse)
+    
+    return jsonify(validationResponse)
+
+@app.route('/fetchAllExpense',methods=['POST'])
+def handleFetchExpenses():
+    from db import fetchExpensesFromDb
+    
+    expensesFetchResponse = fetchExpensesFromDb()
+    
+    return jsonify(expensesFetchResponse)
+
+@app.route('/fetchSpecificDateExpenses',methods=['POST'])
+def handleSpecificDateExpenses():
+    from db import fetchSpecificExpenseByDate
+    payload = request.get_json()
+    
+    payloadStructure = {
+        'dateOfExpense':kutils.config.getValue('bmsDb/dateOfExpense')
+    }
+    
+    payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    if not payloadValidationResponse('status'):
+        return jsonify(payloadValidationResponse)
+    for key in payload:
+        if not payload['key']:
+            return jsonify({
+                'status':False,
+                'log':f'the value of {key} is missing please provide it '
+            })
+    expenseFetchResponse = fetchSpecificExpenseByDate(payload)
+    return jsonify(expenseFetchResponse)
+    
+@app.route('/fetchExpensesFromTo',methods=['POST'])
+def handleFetchSpecificExpensesFromTO():
+    '''
+        this end point is responsible for fetching expenses 
+        from and to a specific date 
+    '''
+    from db import fetchSpecificExpensesFromTo
+    payload = request.get_json()
+    payloadStructure = {
+        'dateFrom':kutils.config.getValue('bmsDb/dateFrom'),
+        'dateTo':kutils.config.getValue('bmsDb/dateTo')
+    }
+    
+    payloadValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if payloadValidationResponse['status']:
+        for key in payload:
+            if not payload['key']:
+                return jsonify({
+                    'status':False,
+                    'log':f'the value of {key} is missing please provide it'
+                })
+        fetchSpecificExpenseResponse = fetchSpecificExpensesFromTo(payload)
+        return jsonify(fetchSpecificExpenseResponse)
+    return jsonify (payloadValidationResponse)
+    
+# --- the endpoints below are responsible for generation of reports ----
+@app.route('/fetchAllSalesReports', methods=['POST'])
+def fetch_all_sales():
+    from db import fetch_sales_with_pagination
+    limit = 100
+    page = request.json.get('page', 1)
+    response = fetch_sales_with_pagination(limit, page)
+    return jsonify(response)
+
+@app.route('/fetchSpecificSalesReports', methods=['POST'])
+def fetchSpecificSalesReports():
+    from db import fetchSpecificSaleReport
+    payload = request.get_json()
+    saleDetails = {
+        'saleDate': payload.get('saleDate'),
+        
+    }
+    if not saleDetails['saleDate']:
+        return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+    limit = 100
+    page = request.json.get('page', 1)
+    response = fetchSpecificSaleReport(limit, page,saleDetails)
+    return jsonify(response)
+
+@app.route('/fetchSpecificSalesFromToReports', methods=['POST'])
+def fetchSpecificSalesFromToReports():
+    from db import fetchSpecificSalesFromToReports
+    payload = request.get_json()
+    saleDetails = {
+        'dateTo': payload.get('dateTo'),
+        'dateFrom':payload.get('dateFrom')
+        
+    }
+    # if not saleDetails['saleDate']:
+    #     return jsonify({'status': False, 'log': 'Sale Date are required'}), 400
+    limit = 100
+    page = request.json.get('page', 1)
+    response = fetchSpecificSalesFromToReports(limit, page,saleDetails)
+    return jsonify(response)
+
+@app.route('/revokeUser',methods=['POST'])
+@token_required(['admin','manager'])
+def revokeUserPermissions():
+    '''
+        this  endpoint is responsible for revoking user permissions 
+    '''
+    print('>>>>>>>>>username',request.user['user_name'])
+    from db import revokeUser
+    payload = request.get_json()
+    payload['other'] = {"revokedBy":request.user['user_name'],"revokerId":request.user['user_id']}
+    print('>>>>>>',payload)
+    payloadStructure = {
+        'phoneNumber':kutils.config.getValue('bmsDb/phoneNumber'),
+        'other':kutils.config.getValue('bmsDb/other')
+    }
+    payloadStructureValidationResponse = kutils.structures.validator.validate(payload,payloadStructure)
+    if payloadStructureValidationResponse['status']:
+        for key in payload:
+            if not payload[key]:
+                return{
+                    'status':False,
+                    'log':f"The value for {key} is missing please provide it "
+                }
+            response = revokeUser(payload)
+            return jsonify(response)     
+    return payloadStructureValidationResponse
+# ----the endPoints below handle discount ----
+@app.route('/setProductDiscount',methods=['POST'])
+def setProductDiscount():
+    '''
+    this endPoint is responsible for for setting product discounts 
+    the following are keys are expected to be in the payload 
+    'productId','discountRate','expiryDate'
+    '''
+    from db import setProductDiscountPrice
+    payload = request.get_json()
+    payloadStructure = {
+        'productIds':kutils.config.getValue('bmsDb/productIds'),
+        'discountRate':kutils.config.getValue('bmsDb/discountRate'),
+        'expiryDate':kutils.config.getValue('bmsDb/expiryDate')
+    }
+    payloadValidationResponse  = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if payloadValidationResponse['status']:
+        for key in  payload:
+            if not payload[key]:
+                return jsonify({'status':False,'log':f'the value of {key} is missing please provide it'})
+        response = setProductDiscountPrice(payload)
+        return jsonify(response)
+    return jsonify(payloadValidationResponse) 
+
+@app.route('/setProductFlatDiscount',methods=['POST'])
+def setProductFlatDiscount():
+    '''
+    this endPoint is responsible for for setting product discounts 
+    the following are keys are expected to be in the payload 
+    'productId','discountRate','expiryDate'
+    '''
+    from db import setProductFlatDiscountPrice
+    payload = request.get_json()
+    payloadStructure = {
+        'productIds':kutils.config.getValue('bmsDb/productIds'),
+        'discountRate':kutils.config.getValue('bmsDb/discountRate'),
+        'expiryDate':kutils.config.getValue('bmsDb/expiryDate')
+    }
+    payloadValidationResponse  = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if payloadValidationResponse['status']:
+        for key in  payload:
+            if not payload[key]:
+                return jsonify({'status':False,'log':f'the value of {key} is missing please provide it'})
+        response = setProductFlatDiscountPrice(payload)
+        return jsonify(response)
+    return jsonify(payloadValidationResponse) 
+
+@app.route('/setFlatSaleDiscount',methods=['POST'])
+def setFlatSaleDiscount():
+    '''
+    this endPoint is responsible for for flatSale discounts 
+    the following are keys are expected to be in the payload 
+    'grandTotal','discountRate'
+    '''
+    from db import setFlatSaleDiscount
+    payload = request.get_json()
+    payloadStructure = {
+        'grandTotal':kutils.config.getValue('bmsDb/grandTotal'),
+        'discountRate':kutils.config.getValue('bmsDb/discountRate'),
+        'weightAmount':kutils.config.getValue('bmsDb/weightAmount')
+    }
+    payloadValidationResponse  = kutils.structures.validator.validate(payload,payloadStructure)
+    
+    if payloadValidationResponse['status']:
+        for key in  payload:
+            if not payload[key]:
+                return jsonify({'status':False,'log':f'the value of {key} is missing please provide it'})
+        response = setFlatSaleDiscount(payload)
+        return jsonify(response)
+    return jsonify(payloadValidationResponse) 
+
+
+@app.route('/setTieredDiscount', methods=['POST'])
+def set_tiered_discount():
+    """
+    This endpoint handles tiered discounts based on the total sale amount.
+    The following keys are expected in the payload:
+        - 'totalAmount': The total sale amount (float).
+        - 'tiers': A list of tuples [(min_amount, discount_rate)].
+    """
+    from db import setTieredDiscount                                                                                                                                                                                                                                                                                                                                                                        
+    try:
+        # Get the JSON payload from the request
+        payload = request.get_json()
+
+        # Check if the required keys exist and have the correct types
+        if 'totalAmount' not in payload or not isinstance(payload['totalAmount'], (int, float)):
+            return jsonify({
+                'status': False,
+                'log': 'The key "totalAmount" is missing or invalid. Expected a number.'
+            }), 400
+
+        if 'tiers' not in payload or not isinstance(payload['tiers'], list):
+            return jsonify({
+                'status': False,
+                'log': 'The key "tiers" is missing or invalid. Expected a list.'
+            }), 400
+
+        # Validate the format of the tiers
+        for tier in payload['tiers']:
+            if not isinstance(tier, list) or len(tier) != 2:
+                return jsonify({
+                    'status': False,
+                    'log': 'Invalid format for "tiers". Expected a list of lists [(min_amount, discount_rate)].'
+                }), 400
+
+        # Process the tiered discount using the setTieredDiscount function
+        response = setTieredDiscount(payload)
+
+        return jsonify(response), 200
+
+    except Exception as e:
+        # Return error response in case of an exception
+        return jsonify({
+            'status': False,
+            'log': f'An error occurred: {str(e)}'
+        }), 500
+
+@app.route('/fetchAllDiscountedProducts', methods=['POST'])
+# @checkLoggedIn()
+# @checkUserRole(['manager','admin'])
+def handleFetchAllDiscountedProducts():
+    from db import fetchAllProductsWithDiscount
+    '''
+        This endpoint is responsible for fetching all products from the database.
+    '''
+    response = fetchAllProductsWithDiscount()
+    
+    return jsonify(response)
 
 
 def init():
     
         defaults = {
+            'recipients':list,
+            'message':str,
+            'subject':str,
+            'tiers':list,
+            'weightAmount':int,
+            'productIds':list,
+            'discountRate':str,
+            'expiryDate':str,
+            'dateFrom':str,
+            'dateTo':str,
+            'dateOfExpense':str,
+            'description':str,
+            'amountSpent':int,
             'entryId':str,
             'productId':str,
             'timestamp':str,
@@ -1001,6 +1367,7 @@ def init():
             'role':str,
             'creditId':str,
             'others':dict,
+            'other':dict,
             'saleId':str,
             'unit':str,
             'unitId':str,
@@ -1012,7 +1379,9 @@ def init():
             'SECRETE_KEY':kutils.codes.new(),
             'SESSION_TYPE':'filesystem',
             'SESSION_PERMANENT':False,
-            'SESSION_USER_SIGNER':True
+            'SESSION_USER_SIGNER':True,
+            'email':'adamzhakeam@gmail.com',
+            'mailPassword':'xzhf bphb kwuz ybzj'
             
         }
         config_topic = 'bmsDb'

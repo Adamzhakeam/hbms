@@ -1,9 +1,22 @@
-''''
+'''
         the modules below are responsible for handling the database processes of the 
         business management system 
+        pending features -cash drawer reconciliation 
+                            ```
+                                with this feature the user enters the cash in the register at 
+                                the end of the day and compares with the expected amount,
+                                total cash earned ,the money received  through cashless means,
+                                is incremented ,the expenses are decremented , then deduct the 
+                                cash started with at  the beginning of the day started with in the register 
+                            ``` 
+                        -mail smtp
+                        -reports
+                        -product discounts 
+                        -refunds and returns of damaged goods
+                        -invoices and other related documents 
 '''
 import kisa_utils as kutils
-
+import os
 # ----- below is code to handle products-----
 '''
     this is module is responsible for handling the insertion of information about 
@@ -14,10 +27,12 @@ def insertProductIntoDb(product:dict)->dict:
         this function is responsible for inserting product into the database 
         @param product: 'productId','timestamp','userId','productName',productCategory,
                     'productCostPrice','productSalePrice','productQuantity','units',
-                    'productSerialNumber','productImage','others'
+                    'productSerialNumber','productImage','others','discount','discountExpiry'
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbtable = kutils.config.getValue('bmsDb/tables')
+    discount = 0
+    discountExpiry = 'yyyy-mm-dd'
     
     # productId,timestamp,userId,productName,productCategory,productCostPrice,productSalePrice,productQuantity,units,productSerialNumber,productImage,others = product.values()
     with kutils.db.Api(dbPath, dbtable, readonly=False ) as db:
@@ -28,7 +43,7 @@ def insertProductIntoDb(product:dict)->dict:
             productInsertionResponse = db.insert(
                 'products',
                 [product['productId'],product['timestamp'],product['userId'],product['productName'],product['productCategory'],product['productCostPrice'],
-                product['productSalePrice'],product['productQuantity'],product['units'],product['productSerialNumber'],product['productImage'],product['others']]
+                product['productSalePrice'],product['productQuantity'],product['units'],product['productSerialNumber'],product['productImage'],product['others'],discount,discountExpiry]
                 
             )
             return {'status':True,'log':productInsertionResponse}
@@ -123,7 +138,7 @@ def fetchSpecificProductById(productDetails:dict)->dict:
         productList = db.fetch(
             'products',
             ['productId','productName','productCategory','productCostPrice','productSalePrice','productSalePrice','productQuantity',
-             'units','productSerialNumber','productImage'],
+             'units','productSerialNumber','others'],
             'productId = ?',
             [productDetails['productId']],
             limit = 1,
@@ -204,10 +219,6 @@ def fetchSpecificProductByCategory(productDetails:dict)->dict:
                 'log':productList
                 }
 
-
-
-
-
 def fetchAllProducts()->dict:
     '''
         this function is responsible for fetching all 
@@ -268,6 +279,37 @@ def fetchAllProductsWithWarningStock()->dict:
             'log':productsList
         }
     
+def fetchAllProductsWithDiscount() -> dict:
+    '''
+    This function is responsible for fetching all products where
+    the discount inside the `others` JSON column is greater than zero.
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        # Fetch all products and parse the JSON in the 'others' column
+        productsList = db.fetch(
+            'products',
+            ['*'],  # Fetch all columns or specific ones if needed
+            'discount > ?',  # No specific condition (fetch all products)
+            [0],  # No condition data
+            limit=100,  # Limit to 100 rows
+            returnDicts=True,  # Return as a list of dictionaries
+            returnNamespaces=False,
+            parseJson=False,  # Parse JSON columns automatically
+            returnGenerator=False
+        )
+        
+        if not len(productsList):
+            return {
+                'status':False,
+                'log':'You do not have any products with set discounts '
+            }
+        return {'status':True, 'log':productsList}
+    
+
+    
 def createTables():
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTables = kutils.config.getValue('bmsDb/tables')
@@ -292,7 +334,7 @@ def addSaleToDB(sales: dict) -> dict:
     '''
     dbPath = kutils.config.getValue("bmsDb/dbPath")
     dbTable = kutils.config.getValue("bmsDb/tables")
-    # entryId, saleId, timestamp, grandTotal, numberOfItemsSold, soldBy,soldTo,payementType,payementStatus,amountPaid, others = sales.values()
+    # entryId, saleId, timestamp, grandTotal, numberOfItemsSold, soldBy,soldTo,paymentType,paymentStatus,amountPaid, others = sales.values()
 
     with kutils.db.Api(dbPath, dbTable, readonly=False)as db:
         insertSaleStatus = db.insert(
@@ -301,7 +343,7 @@ def addSaleToDB(sales: dict) -> dict:
              sales['soldBy'],sales['soldTo'],sales['paymentType'], sales['paymentStatus'], sales['amountPaid'],sales['others']])
         return insertSaleStatus
     
-def fetchSpecificSale(saleDetails:dict) -> list:
+def fetchSpecificSale(saleDetails:dict) -> dict:
     '''
         this function is responsible for fetching sales from database of a particular date
         @param date
@@ -326,7 +368,7 @@ def fetchSpecificSale(saleDetails:dict) -> list:
             'log':specificSaleFetchResponse
         }
 
-def fetchSpecificSaleById(saleDetails:dict) -> list:
+def fetchSpecificSaleById(saleDetails:dict) -> dict:
     '''
         this function is responsible for fetching sales from database of a particular date
         @param date
@@ -352,7 +394,7 @@ def fetchSpecificSaleById(saleDetails:dict) -> list:
         }
 
     
-def fetchSpecificSalesFromTo(saleDates:dict) -> list:
+def fetchSpecificSalesFromTo(saleDates:dict) -> dict:
     '''
         this function is responsible for fetching sales between a particular period of time 
         @ param saleDates:'dateFrom','dateTo' are the expected keys
@@ -364,7 +406,7 @@ def fetchSpecificSalesFromTo(saleDates:dict) -> list:
     with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
         specificSaleFetchResponse = db.fetch(
             'sales',
-            ['grandTotal','numberOfItems','soldBy','soldTo','paymentType','paymentStatus','amountPaid'],
+            ['grandTotal','numberOfItemsSold','soldBy','soldTo','paymentType','paymentStatus','amountPaid'],
             'dateSold >= ? and dateSold <=?',[dateFrom,dateTo],
             limit = 100,
             returnDicts= True,
@@ -372,6 +414,7 @@ def fetchSpecificSalesFromTo(saleDates:dict) -> list:
             parseJson=False,
             returnGenerator=False
         )
+        
         return {
             'status':True,
             'log':specificSaleFetchResponse
@@ -379,7 +422,7 @@ def fetchSpecificSalesFromTo(saleDates:dict) -> list:
     
 
     
-def fetchAllSales()->list:
+def fetchAllSales()->dict:
     '''
     this function is responsible for fetching all the sales from the database
     it returns a list of the all the sales 
@@ -404,6 +447,124 @@ def fetchAllSales()->list:
             'status':True,
             'log':salesFetchResponse
         }
+
+# ---- the code below handles report generation of sales ---
+def fetch_sales_with_pagination(limit: int, page: int) -> dict:
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    
+    offset = (page - 1) * limit
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        sales = db.fetch(
+            'sales',
+            ['*'],
+            '',
+            [],
+            limit=limit,
+            returnDicts=True,
+            returnNamespaces=False,
+            parseJson=False,
+            returnGenerator=False
+        )[offset:offset + limit]  # Slice the result to simulate offset
+        
+        salesCount = db.fetch(
+            'sales',['*'],'',[],limit=6000,returnDicts=True,returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        
+        totalCount = len(salesCount)
+        
+        return {
+            'status': True,
+            'log': sales,
+            'total':totalCount
+        }
+        
+def fetchSpecificSaleReport(limit:int,page:int,saleDetails:dict) -> list:
+    '''
+        this function is responsible for fetching sales from database of a particular date
+        @param date,limit,int
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    date = saleDetails['saleDate']
+    
+    offset = (page - 1) * limit
+    
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificSaleFetchResponse = db.fetch(
+            'sales',
+            ['*'],
+            'dateSold = ?',[date],
+            limit = limit,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )[offset:offset + limit] 
+        
+        fetchResponse =  db.fetch(
+            'sales',
+            ['*'],
+            'dateSold = ?',[date],
+            limit = 6000,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        totalCount = len(fetchResponse)
+        
+        return {
+            'status': True,
+            'log': specificSaleFetchResponse,
+            'total':totalCount
+        }
+        
+def fetchSpecificSalesFromToReports(limit:int,page:int,saleDates:dict) -> list:
+    '''
+        this function is responsible for fetching sales between a particular period of time 
+        @ param saleDates:'dateFrom','dateTo' are the expected keys
+    '''
+    dbPath = kutils.config.getValue("bmsDb/dbPath")
+    dbTable = kutils.config.getValue("bmsDb/tables")
+    dateFrom = saleDates['dateFrom']
+    dateTo = saleDates['dateTo']
+    offset = (page - 1) * limit
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        specificSaleFetchResponse = db.fetch(
+            'sales',
+            ['grandTotal','numberOfItemsSold','soldBy','soldTo','paymentType','paymentStatus','amountPaid'],
+            'dateSold >= ? and dateSold <=?',[dateFrom,dateTo],
+            limit = limit,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )[offset:offset + limit] 
+        
+        fetchResponse = db.fetch(
+            'sales',
+            ['grandTotal','numberOfItemsSold','soldBy','soldTo','paymentType','paymentStatus','amountPaid'],
+            'dateSold >= ? and dateSold <=?',[dateFrom,dateTo],
+            limit = 6000,
+            returnDicts= True,
+            returnNamespaces= False,
+            parseJson=False,
+            returnGenerator=False
+        )
+        
+        totalCount = len(fetchResponse)
+        
+        return {
+            'status': True,
+            'log': specificSaleFetchResponse,
+            'total':totalCount
+        }
+
+
     
 # def addSingleProductSale(singleProductSales: list) -> dict:
 #     '''
@@ -530,7 +691,71 @@ def fetchAllUsers()->list:
             'status':True,
             'log':customerFetchResponse
         }
+def fetchUserByPhoneNumber(userDetails:dict)->dict:
+    '''
+    this module is responsible for fetching user by phone number
+    @param userDetails:expected keys 'phoneNumber'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
     
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        userFetchResponse = db.fetch(
+            'users',['*'],'phoneNumber=?',[userDetails['phoneNumber']],
+            limit = 1 ,returnDicts= True,
+            returnNamespaces=False,parseJson=False,returnGenerator=False
+        )  
+        if  len(userFetchResponse) == 0 :
+            return {
+                'status':False,
+                'log':f'No users found registered under {userDetails["phoneNumber"]}'
+            } 
+        return{
+            'status':True,
+            'log':userFetchResponse
+        }
+
+def insertRevokedUser(userDetails:dict) -> dict:
+    '''
+        this module is responsible for inserting a revoked user into db 
+        @param userDetails:entryId, timestamp, userId,userName,password ,phoneNumber, email,roleId,other the following 
+                            are the expected keys
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly = False) as db:
+        entryId = kutils.codes.new()
+        timestamp = kutils.dates.currentTimestamp()
+        if userDetails['other']['revokerId'] == userDetails['userId']:
+            return{
+                'status':False,
+                'log':'user can`t revoke themselves'
+            }
+        revokedUserInsertionResponse = db.insert( 'revokedUser',
+                                                 [entryId,timestamp,userDetails['userId'],userDetails['userName'],
+                                                      userDetails['password'],userDetails['phoneNumber'],userDetails['email'],
+                                                      userDetails['roleId'],userDetails['other']])
+        return revokedUserInsertionResponse   
+    
+def resetUserPassword(userDetails:dict)->dict:
+    '''
+        this function is responsible for resetting users password
+        @param userDetails: 'phoneNumber' is the expected key  
+    ''' 
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    newPassword = kutils.codes.new(8)
+    passwordHash = kutils.encryption.hash(newPassword)
+    if fetchUserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['status']:
+        email = fetchUserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['log'][0]['email']
+        with kutils.db.Api(dbPath,dbTable,readonly=False) as db:
+            passwordUpdateResponse = db.update('users',
+                                               ['password'],[passwordHash],'phoneNumber = ?',
+                                               [userDetails['phoneNumber']])
+            if passwordUpdateResponse['status']:
+                return{'status':True,'log':f"your new password is: {newPassword}",'email':email}
+            return passwordUpdateResponse
+    return {'status':False,'log':'There is no user registered under the phoneNumber provided '}
 
 def login(userDetails:dict)->dict:
     '''
@@ -595,7 +820,7 @@ def fetchRole(roleDetails:dict)->list:
                 'status':False,
                 'log':"role does not exist"
             }
-        print(roleFetchResults)
+        
         return {
             'status':True,
             'log':roleFetchResults
@@ -1132,10 +1357,10 @@ def fetchSpecificProductSalesFromTo(saleDates:dict) -> list:
             parseJson=False,
             returnGenerator=False
         )
-    if len(specificProductSaleFetchResponse) == 0:
+    if not len(specificProductSaleFetchResponse):
         return{
             'status':False,
-            'log':specificProductSaleFetchResponse
+            'log':f'You didn`t make any sales in the dates selected {dateFrom} to {dateTo} '
         }
         
     return {
@@ -1164,13 +1389,477 @@ def editSale(saleDetails:dict)->dict:
         return salesUpdateResponse
 
         
-
+# ------the modules below are responsible for handling expenses 
+'''
+    the functions below are responsible for handling expenses ,
+    inserting ,updating and fetching 
+'''
+def addExpenseToDb(expenseDetails:dict)->dict:
+    '''
+        this function handles insertion of expenses into the database 
+        @param: expected keys in the dictionary 'entryId','timestamp','dateOfExpense','description','amountSpent','others'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        expenseInsertionResponse = db.insert(
+            'expenses',
+            [expenseDetails['entryId'],expenseDetails['timestamp'],expenseDetails['dateOfExpense'],
+             expenseDetails['description'],expenseDetails['amountSpent'],expenseDetails['others']
+             ]
+        )
+    return expenseInsertionResponse
+    
+def fetchExpensesFromDb()->dict:
+    '''
+        this function is responsible for fetching all expenses from the database 
+    '''    
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        expenseFetchResponse = db.fetch(
+            'expenses',
+            ['*'],
+            condition = '',
+            conditionData = [],
+            limit = 100,
+            returnDicts= True,
+            returnNamespaces = False ,
+            parseJson= False,
+            returnGenerator= False
+        )
         
+    if not len(expenseFetchResponse):
+            return{'status':False,'log':"you haven`t registered any expenses yet "}
+    return {
+        'status':True,
+        'log':expenseFetchResponse
+    }
+    
+def fetchSpecificExpenseByDate(expenseDetails:dict)->dict:
+    '''
+        the following function is responsible if fetching a specific expense from database
+        that was made on  specific date 
+        @param:expenseDetails 'dateOfExpense'
+        
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        expenseFetchResponse = db.fetch(
+            'expenses',['*'],'dateOfExpense = ?',
+            [expenseDetails['dateOfExpense']], limit = 100, returnDicts= True,
+            returnNamespaces=False,parseJson=False,returnGenerator=False
+        )
+        if not len(expenseFetchResponse):
+            return{
+                'status':False,
+                'log':"You dont have any expenses on this date"
+            }
+        return {
+            'status':True,
+            'log':expenseFetchResponse
+        }
+        
+def fetchSpecificExpensesFromTo(dateDetails:dict)->dict:
+    '''
+        this function is responsible for fetching expenses from and to a specific  date
+        @param dateDetails:'dateFrom','dateTo' are the expected keys 
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    dateFrom = dateDetails['dateFrom'],
+    dateTo = dateDetails['dateTo']
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        expenseFetchResponse = db.fetch(
+            'expenses',['*'],'dateOfExpense >= ? and dateOfExpense <= ?',
+            [dateFrom,dateTo],limit=100,returnDicts=True,returnNamespaces=False,
+            parseJson=False,returnGenerator=False
+        )
+        if not len(expenseFetchResponse):
+            return{
+                'status':False,
+                'log':f'you dont have any sales between {dateFrom} and {dateTo} '
+            }
+        return {
+            'status':True,
+            'log':expenseFetchResponse
+        }
+        
+#-------the modules below are for removing a user from database----
 
-             
+def removeUserFromDb(userDetails:dict)->dict:
+    '''
+        this function deletes user from database table users
+        @param: expected key is 'phoneNumber'
+    '''
+    dbPath= kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+       
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+            userDeleteResponse = db.delete(
+                'users',
+                'phoneNumber = ?',
+                [userDetails['phoneNumber']]
+            ) 
+    return userDeleteResponse
+
+def revokeUser(userDetails:dict)->dict:
+    '''
+    this function is responsible for revoking user
+    @param userDetails: the expected keys are 'phoneNumber','other' 
+    '''
+    userToRevoke = fetchUserByPhoneNumber(userDetails)
+    if userToRevoke['status']:
+        userToRevoke['log'][0]['other'] = userDetails['other']
+        # print('>>>',userToRevoke['log'][0])
+        transferUserResponse = insertRevokedUser(userToRevoke['log'][0])
+        if transferUserResponse['status']:
+           userDropResponse  = removeUserFromDb(userDetails)
+           if userDropResponse['status']:
+               return {'status':True,'log':f"user {userToRevoke['log'][0]['userName'] } revoked successfully"}
+           return userDropResponse
+        return transferUserResponse 
+    return userToRevoke
+
+# --- the modules below are responsible for handling discounts 
+def calculateDiscount(discountDetails:dict)->dict:
+    '''
+    this function is responsible for calculating discount of 
+    product(s) 
+    @param discountDetails:the expected keys are 'discountRate' ,'productSalePrice
+    the value for discountRate is  string which is either a percentage or
+    a discount price  
+    '''
+    if discountDetails['discountRate'].endswith('%'):
+        newPx = int(discountDetails['discountRate'].strip('%'))
+        discountPrice = (newPx)*0.01
+        return{'discount':discountPrice}
+    else:
+        discountPrice = int(discountDetails['discountRate'])
+        return{'discount':discountPrice}
+
+
+
+def setProductFlatDiscountPrice(discountingDetails: dict) -> dict:
+    '''
+    This function is responsible for setting the discount price 
+    to the specific product(s) that have been selected.
+    
+    @param discountingDetails: the expected keys are 'discountRate',
+                               'productIds', and 'discountExpiry'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    discountExpiry = kutils.dates.today()
+    
+    
+    # Initialize lists to collect update responses and errors
+    updateResponses = []
+    errors = []
+    
+    for productId in discountingDetails['productIds']:
+        productFetchResponse = fetchSpecificProductById({'productId': productId})
+        
+        if productFetchResponse['status']:
+            productDetails = productFetchResponse['log'][0]
+            
+            try:
+                # Calculate the discount using the calculateDiscount function
+                discount = calculateDiscount(discountingDetails)['discount']
+                
+                # Check if the discount is greater than the product sale price
+                if discount >= productDetails['productSalePrice']:
+                    errors.append({'productId': productId, 'error': 'Discount exceeds product sale price'})
+                    continue  # Skip this product if the discount is greater or equal to the sale price
+                
+                # Calculate the discounted price
+                discountedPrice = productDetails['productSalePrice'] - discount
+                
+                # Update the product in the database
+                with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+                    updateResponse = db.update(
+                        'products',
+                        ['discount','discountExpiry'],
+                        [discountedPrice,discountExpiry],
+                        'productId=?', 
+                        [productId]
+                    )
+                    
+                    # Add the successful update response to the list
+                    if updateResponse['status']:
+                        updateResponses.append(productDetails['productName'])
+                    else:
+                        # Add to errors if the update failed
+                        errors.append({'productId': productId, 'error': 'Update failed'})
+            
+            except Exception as e:
+                # Catch any exceptions and add them to the errors list
+                errors.append({'productId': productId, 'error': str(e)})
+        
+        else:
+            # Add to errors if the product fetch failed
+            errors.append({'productId': productId, 'error': 'Product not found'})
+    
+    # Return both successful updates and any errors encountered
+    print('running1')
+    return {
+        'status': False if errors else True,
+        'updatedProducts': updateResponses,
+        'errors': errors
+    }
+
+def setProductDiscountPrice(discountingDetails: dict) -> dict:
+    '''
+    This function is responsible for setting the discount price 
+    to the specific product(s) that have been selected.
+    
+    @param discountingDetails: the expected keys are 'discountRate',
+                               'productIds', and 'discountExpiry'
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    discountExpiry = kutils.dates.today()
+    
+    
+    # Initialize lists to collect update responses and errors
+    updateResponses = []
+    errors = []
+    
+    for productId in discountingDetails['productIds']:
+        productFetchResponse = fetchSpecificProductById({'productId': productId})
+        
+        if productFetchResponse['status']:
+            productDetails = productFetchResponse['log'][0]
+            
+            try:
+                # Calculate the discount using the calculateDiscount function
+                newPx = calculateDiscount(discountingDetails)['discount']
+                discount = productDetails['productSalePrice']*newPx
+                
+                # Check if the discount is greater than the product sale price
+                if discount >= productDetails['productSalePrice']:
+                    errors.append({'productId': productId, 'error': 'Discount exceeds product sale price'})
+                    continue  # Skip this product if the discount is greater or equal to the sale price
+                
+                # Calculate the discounted price
+                discountedPrice = productDetails['productSalePrice'] - discount
+                
+                # Update the product in the database
+                with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+                    updateResponse = db.update(
+                        'products',
+                        ['discount','discountExpiry'],
+                        [discountedPrice,discountExpiry],
+                        'productId=?', 
+                        [productId]
+                    )
+                    
+                    # Add the successful update response to the list
+                    if updateResponse['status']:
+                        updateResponses.append(productDetails['productName'])
+                    else:
+                        # Add to errors if the update failed
+                        errors.append({'productId': productId, 'error': 'Update failed'})
+            
+            except Exception as e:
+                # Catch any exceptions and add them to the errors list
+                errors.append({'productId': productId, 'error': str(e)})
+        
+        else:
+            # Add to errors if the product fetch failed
+            errors.append({'productId': productId, 'error': 'Product not found'})
+    
+    # Return both successful updates and any errors encountered
+    return {
+        'status': False if errors else True,
+        'updatedProducts': updateResponses,
+        'errors': errors
+    }
+
+def resetProductDiscountDetails() -> dict:
+    '''
+    This function is responsible for resetting the discount details for 
+    products with discounts on their expiry date.
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    today = kutils.dates.today()  # Get the current date in 'yyyy-mm-dd' format
+    
+    updatedProducts = []  # List to hold names of updated products
+    
+    if fetchAllProductsWithDiscount()['status']:
+        discountedProductList = fetchAllProductsWithDiscount()['log']
+        
+        for product in discountedProductList:
+            try:
+                # Check if the product's discountExpiry matches today's date
+                if product['discountExpiry'] == today:
+                    # Open database connection in read-write mode to update the product
+                    with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+                        response = db.update(
+                            'products',  # Table name
+                            ['discount', 'discountExpiry'],  # Columns to update
+                            [0, '0000-00-00'],  # Set discount to 0 and expiry to default
+                            'productId = ?',  # Condition for update
+                            [product['productId']]  # Condition data
+                        )
+                    
+                    # If the update was successful, append the product name to updatedProducts list
+                    if response['status']:  # Assuming response is a dictionary with a 'status' key
+                        updatedProducts.append(product['productName'])
+            except Exception as e:
+                # Log error (optional, depending on how you handle errors in your library)
+                print(f"Error updating product {product['productId']}: {str(e)}")
+                continue  # Continue to the next product even if there's an error
+        
+        # Join the updated products into a single string, separated by commas
+        updatedProductsStr = ', '.join(updatedProducts)
+        
+        # Return the result
+        if updatedProductsStr:
+            print('running2')
+            return {
+                'status': True,
+                'updatedProducts': updatedProductsStr
+            }
+    print('running1')   
+    return {
+        'status': False,
+        'log': "No products had discounts expiring today."
+    }
+
+
+
+# def SetProductDiscountPrice(discountingDetails: dict) -> dict:
+#     '''
+#     Optimized method to set discount prices for a batch of products using threading.
+    
+#     @param discountingDetails: The expected keys are 'discountRate', 'productIds', and 'expiryDate'
+#                                - 'productIds' is a list of product IDs to update
+#                                - 'discountRate' is the discount to apply (can be percentage or fixed)
+    
+#     This method batches product updates into concurrent threads to process them efficiently.
+#     '''
+#     dbPath = kutils.config.getValue('bmsDb/dbPath')
+#     dbTable = kutils.config.getValue('bmsDb/tables')
+    
+#     updateResponses = []
+#     errors = []
+    
+#     def processProduct(productId:str):
+#         '''
+#         Inner function to process each product's discount.
+#         '''
+#         productFetchResponse = fetchSpecificProductById({'productId': productId})
+        
+#         if productFetchResponse['status']:
+#             try:
+#                 discountingDetails['productSalePrice'] = productFetchResponse['log'][0]['productSalePrice']
+#                 discount = calculateDiscount(discountingDetails)['discount']
+#                 print('>>>>>>>>',discount)
+#                 # Calculate the discounted price
+#                 discountedPrice = productFetchResponse['log'][0]['productSalePrice'] - discount
+                
+#                 with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
+#                     updateResponse = db.update(
+#                         'products',
+#                         ['others'],
+#                         [{'omega': discountedPrice}],
+#                         'productId=?', 
+#                         [productId]
+#                     )
+                    
+#                     if updateResponse['status']:
+#                         updateResponses.append(productFetchResponse['log'][0]['productName'])
+#                     else:
+#                         errors.append(productId)
+#             except Exception as e:
+#                 errors.append({'productId': productId, 'error': str(e)})
+#         else:
+#             errors.append({'productId': productId, 'error': 'Product not found'})
+    
+#     # Use threading to handle multiple products at once
+#     for productId in discountingDetails['productIds']:
+#         kutils.threads.runOnce(processProduct, productId)
+    
+#     # Wait for all threads to complete and gather results
+#     return {
+#         'status': False if errors else True,
+#         'updatedProducts': updateResponses,
+#         'errors': errors
+#     }
+
+def setFlatSaleDiscount(discountDetails:dict)->dict:
+    '''
+        this function is responsible for 'handling 
+        flatSale discount  and setting the discounted price 
+        @param discountDetails: 'discountRate','weightAmount',amountPaid
+    '''
+    discount = calculateDiscount(discountDetails)
+    print(">>>>>>>>>>>>>>>>>topnotchdebugger", discountDetails['amountPaid'],discount['discount'])
+    if discountDetails['amountPaid'] >= discountDetails['weightAmount']:
+        
+        discountedPrice = discountDetails['amountPaid']-discount['discount']
+        return {'discountedPrice':discountedPrice}
+    
+def setTieredDiscount(discountDetails: dict) -> dict:
+        '''
+        This function applies a tiered discount based on the total sale amount.
+        
+        @param discountDetails: A dictionary containing:
+            - 'totalAmount': The total sale amount.
+            - 'tiers': A list of tuples, each containing (min_amount, discount_rate)
+        '''
+        total_amount = discountDetails['totalAmount']
+        tiers = discountDetails['tiers']
+        
+        # Initialize variables to track applicable discount
+        applicable_discount = 0
+        highest_discount_rate = None
+        closest_discount_rate = None
+        smallest_difference = float('inf')
+
+        for min_amount, discount_rate in tiers:
+            # Convert discount rate to float for calculation
+            discount_value = calculateDiscount({'discountRate': discount_rate})['discount']
+            
+            if total_amount >= min_amount:
+                # If the total amount exceeds this tier
+                if highest_discount_rate is None or min_amount > highest_discount_rate[0]:
+                    highest_discount_rate = (min_amount, discount_rate)
+
+                # Check for the closest tier
+                difference = total_amount - min_amount
+                if difference < smallest_difference:
+                    smallest_difference = difference
+                    closest_discount_rate = discount_rate
+
+        # Determine which discount to apply
+        if highest_discount_rate:
+            # Apply the highest discount if total_amount is greater than all
+            print('>>>>>>>>>>>>>>>>>>highestDiscount rate',highest_discount_rate[1])
+            applicable_discount = calculateDiscount({'discountRate': highest_discount_rate[1]})['discount'] * total_amount
+        elif closest_discount_rate:
+            # Otherwise, apply the closest discount
+            print('>>>>>>>>>>>>>>>closestAmount',closest_discount_rate)
+            applicable_discount = calculateDiscount({'discountRate': closest_discount_rate})['discount'] * total_amount
+
+        # Calculate the final discounted price
+        discounted_price = total_amount - applicable_discount
+
+        return {
+            'discountedPrice': discounted_price,
+            'applicableDiscount': applicable_discount,
+            'status': True if applicable_discount > 0 else False
+        }
+
+
+# def setTiredDiscount()             
 def init():
     defaults = {
-        'rootPath':'/tmp/hbms',
+        'rootPath':'/home/predator/Desktop/hbms',
         'dbName':'hbms',
         'tables':{
             "products":'''
@@ -1215,6 +1904,14 @@ def init():
                                 total       integer(32) not null,
                                 others       json 
                                 ''',
+                'expenses':'''
+                            entryId             varchar(32) not null,
+                            timestamp           varchar(32) not null,
+                            dateOfExpense       varchar(32) not null,
+                            description         varchar(32) not null,
+                            amountSpent         integer(32) not null,
+                            others              json
+                ''',
                 'credits':'''
                             entryId         varchar(32) not null,
                             timestamp       varchar(32) not null,
@@ -1256,6 +1953,18 @@ def init():
                             
                 
                 ''',
+                'revokedUser':'''
+                                entryId     varchar(32) not null,
+                                timestamp   varchar(32) not null,
+                                userId      varchar(32) not null,
+                                userName    varchar(32) not null,
+                                password    varchar(32) not null,
+                                phoneNumber integer(32) not null,
+                                email       varchar(32) not null,
+                                roleId      varchar(32) not null,
+                                other       json
+                
+                ''',
                 'roles':'''
                             entryId             varchar(32) not null,
                             timestamp           varchar(32) not null,
@@ -1271,7 +1980,15 @@ def init():
                                 category        varchar(32) not null,
                                 others          json
                                 
-                '''
+                ''',
+                'cashDrawer':'''
+                                entryId         varchar(32) not null,
+                                timestamp       varchar(32) not null,
+                                cashDrawerId    varchar(32) not null,
+                                openingBalance  integer(32) not null,
+                                closingBalance  integer(32) not null,
+                                others          json
+                ''' 
 
         }
     }
@@ -1286,7 +2003,9 @@ init()
 
 
 if __name__ == "__main__":
+   
     
+    # g = kutils.permissions.Ok()
     
     product= {
         'productId':'pppp',
@@ -1342,25 +2061,79 @@ if __name__ == "__main__":
         'entryId':kutils.codes.new(),
         'timestamp':kutils.dates.currentTimestamp(),
         'userId':kutils.codes.new(),
-        'userName':'johndoe',
+        'userName':'aghi',
         'password':'hello123',
-        'roles':'user',
-        'email':'johndoe@gmail.com',
-        'phoneNumber':'',
-        'roleId':'user'
+        'roles':'admin',
+        'email':'johnaghi@gmail.com',
+        'phoneNumber':'0772462452',
+        'roleId':'1ErdjA017z5Z'
     }
-   
-    createTables()
-    print(fetchAllUnClearedCredits())
+    
+    aghi = {
+        'phoneNumber':'0772462452',
+        'other':{'revokedBy':'Parrot'}
+    }
+    expense = {
+        'entryId':kutils.codes.new(),
+        'timestamp':kutils.dates.currentTimestamp(),
+        'dateOfExpense':kutils.dates.today(),
+        'description':"Yaka",
+        'amountSpent':80000,
+        'others':{'user':'Karen'}
+    }
+    expense2 = {
+        'dateOfExpense':'2024-09-02'
+    }
+    
+    discountingDetails = {
+        'productIds':['fYppObCw7JYX','iXW5FccFRdoj','GhXBcpwjVSqI'],
+        'discountRate':'5000'
+    }
+    newRow = {
+        'discountExpiry':'varchar(32) not null default yyyymmdd '
+    }
+    
+    def insertNewColumn(newColn):
+        dbPath = kutils.config.getValue('bmsDb/dbPath')
+        dbTable = kutils.config.getValue('bmsDb/tables')
+        
+        with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+           response = db.alterTable('products',newColn)
+           return response 
+    
+    import pprint
+    # print(insertNewColumn(newRow))
+    # print(resetProductDiscountDetails()['updatedProducts'])
+    # pprint.pprint(fetchAllProductsWithDiscount())
+    # print(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
+    print(setProductFlatDiscountPrice(discountingDetails))
+    # pprint.pprint(fetchAllProducts())  
+    # print(fetchRole({'roleId':'uOVMbPurWTjq'})['log'][0])  
+    # print(createTables())
+    # print(addExpenseToDb(expense))
+    # print(fetchExpensesFromDb())
+    # print(fetchSpecificExpenseByDate(expense2))
+    # print(fetchAllProductSales())
+    # print(fetchSpecificSalesFromTo({'dateFrom':'2024-08-16','dateTo':'2024-09-02'}))
+    # print(fetchAllSales())
+    # print(fetchSpecificProductSale({'saleDate':'2024-07-16'}))
+    # print(fetchSpecificProductSalesFromTo({'dateFrom':'2024-08-16','dateTo':'2024-08-02'}))
+    # print('>>>>>>>>>>>>',removeUserFromDb(aghi))
+    # pprint.pprint(fetchAllUsers())
+    # print(fetchUserByPhoneNumber({'phoneNumber':'0772442222'})['log'][0]['userName'])
+    # print(revokeUser(aghi))
     # print(fetchSpecificSale({'saleDate':'2024-07-09'}))
     # date = kutils.dates.today()
     # print(date)
     # print(createUser(user))
+    # print(resetUserPassword({'phoneNumber':'072442222'}))
     # print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
-    # print(fetchAllProducts())
+    # pprint.pprint(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
     # print(updateProductQuantity(si))
     # print(editParticularProduct(productDetails))
-    # print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))
+    # knockedUp print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))
+    
+    
     

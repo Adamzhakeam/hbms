@@ -13,8 +13,200 @@ document.addEventListener("DOMContentLoaded", () => {
   const salesForm = document.getElementById("salesForm");
 
   let products = []; // This will store the fetched products
-  let selectedProducts = []; // This will store the selected products for the sale
+  let selectedProducts = [];
 
+  // This will store the selected products for the sale
+
+  const discountModal = document.getElementById("discountModal");
+  const setDiscountButton = document.getElementById("setDiscount");
+  const applyDiscountButton = document.getElementById("applyDiscount");
+  const closeModalButton = document.querySelector(".close");
+  const discountType = document.getElementById("discountType");
+  const discountValue = document.getElementById("discountValue");
+  const discountHint = document.getElementById("discountHint");
+
+  // Open the modal
+  setDiscountButton.addEventListener("click", () => {
+    discountModal.style.display = "block";
+  });
+
+  // Close the modal
+  closeModalButton.addEventListener("click", () => {
+    discountModal.style.display = "none";
+  });
+
+  // Close modal if clicking outside the content
+  window.addEventListener("click", (event) => {
+    if (event.target === discountModal) {
+      discountModal.style.display = "none";
+    }
+  });
+
+  // Handle discount value input
+  discountValue.addEventListener("input", () => {
+    if (discountType.value === "percentage") {
+      const value = parseInt(discountValue.value, 10);
+      if (value > 99) {
+        discountHint.textContent = "Percentage cannot exceed 99%";
+        discountValue.value = "99"; // Cap the input to 99
+      } else {
+        discountHint.textContent = `% applied: ${value}%`;
+      }
+    } else {
+      discountHint.textContent = "Flat amount will be applied.";
+    }
+  });
+
+  // Handle applying the discount
+  applyDiscountButton.addEventListener("click", () => {
+    const discount = discountValue.value;
+    const type = discountType.value;
+    // Add your logic to apply the discount here
+    console.log("Discount:", discount, "Type:", type);
+
+    discountModal.style.display = "none"; // Close the modal after applying the discount
+  });
+
+  let selectedProductIds = [];
+
+  // Fetch products by category
+  function fetchProductsByCategory(category) {
+    fetch("http://127.0.0.1:5000/fetchSpecificProductByCategory", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productCategory: category }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status) {
+          populateProductList(data.log); // populate UI with the fetched products
+        } else {
+          alert("No products found in this category");
+        }
+      })
+      .catch((error) =>
+        console.error("Error fetching products by category:", error)
+      );
+  }
+
+  // Fetch products by name
+  function fetchProductsByName(productName) {
+    fetch("http://127.0.0.1:5000/fetchSpecificProduct", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ productName: productName }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.status) {
+          populateProductList(data.log); // populate UI with the fetched products
+        } else {
+          alert("No product found with this name");
+        }
+      })
+      .catch((error) =>
+        console.error("Error fetching products by name:", error)
+      );
+  }
+
+  // Populate the list of products fetched in the UI
+  function populateProductList(productList) {
+    let productContainer = document.getElementById("product-container"); // Ensure you have a div or section with this ID
+    productContainer.innerHTML = ""; // Clear the previous products
+
+    productList.forEach((product) => {
+      let productItem = document.createElement("div");
+      productItem.className = "product-item";
+      productItem.innerHTML = `
+            <h3>${product.productName}</h3>
+            <p>Category: ${product.productCategory}</p>
+            <p>Sale Price: ${product.productSalePrice}</p>
+            <button onclick="selectProduct(${product.productId})">Select Product</button>
+        `;
+      productContainer.appendChild(productItem);
+    });
+  }
+
+  // Add selected product to an array for further actions (e.g., applying discount)
+  function selectProduct(productId) {
+    if (!selectedProductIds.includes(productId)) {
+      selectedProductIds.push(productId);
+      alert("Product selected");
+    } else {
+      alert("Product already selected");
+    }
+  }
+
+  // Apply discount to selected products
+  function applyDiscountToSelectedProducts(discountPercentage) {
+    if (selectedProductIds.length === 0) {
+      alert("No products selected");
+      return;
+    }
+
+    // Logic to apply discount (you might need to send this information to the backend)
+    selectedProductIds.forEach((productId) => {
+      console.log(
+        `Applying ${discountPercentage}% discount to product ID: ${productId}`
+      );
+      // Example: Send the discount to the backend for each product
+    });
+
+    alert(`Discount applied to ${selectedProductIds.length} products.`);
+  }
+
+  // Example call to search by category
+  document
+    .getElementById("category-search-btn")
+    .addEventListener("click", function () {
+      let category = document.getElementById("category-input").value;
+      fetchProductsByCategory(category);
+    });
+
+  // Example call to search by name
+  document
+    .getElementById("name-search-btn")
+    .addEventListener("click", function () {
+      let productName = document.getElementById("name-input").value;
+      fetchProductsByName(productName);
+    });
+
+  // Apply discount button
+  document
+    .getElementById("apply-discount-btn")
+    .addEventListener("click", function () {
+      let discount = parseFloat(
+        document.getElementById("discount-input").value
+      );
+      applyDiscountToSelectedProducts(discount);
+    });
+
+  //this function below will enable us fetch users data
+  // async function fetchUserData() {
+  //   let token = localStorage.getItem("token");
+  //   console.log(">>>>>>>>>tokendsasssass", token);
+
+  //   let response = await fetch("http://127.0.0.1:5000/profile", {
+  //     method: "POST",
+  //     headers: {
+  //       Authorization: `Bearer ${token}`,
+  //     },
+  //   });
+
+  //   let result = await response.json();
+  //   if (result.status) {
+  //     user_name = result.userName;
+  //     role_id = result.roleId;
+  //     window.onload = fetchUserData;
+  //     return { user_name, role_id };
+  //   } else {
+  //     throw new Error("Failed to fetch users data");
+  //   }
+  // }
   // Fetch products from the backend
   fetch("http://127.0.0.1:5000/fetchAllProducts", {
     method: "POST",
@@ -125,6 +317,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update the grand total
   function updateGrandTotal() {
+    let sr = fetchUserData().then((data) => {
+      const userName = data.user_name;
+    });
     const grandTotal = selectedProducts.reduce(
       (total, product) => total + product.total,
       0
@@ -149,18 +344,19 @@ document.addEventListener("DOMContentLoaded", () => {
         0
       ),
       numberOfItemsSold: selectedProducts.length,
-      soldBy: "brownthighs", // Replace with actual data
+      // soldBy: sr, // Replace with actual data
       soldTo: soldTo,
       paymentType: paymentType,
       paymentStatus: paymentStatus,
       amountPaid: amountPaid,
-      others: { userName: "nakanjako" }, // Replace with actual data
+      // others: { userName: sr }, // Replace with actual data
     };
 
     fetch("http://127.0.0.1:5000/addSale", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token here
       },
       body: JSON.stringify(salePayload),
     })
@@ -178,13 +374,14 @@ document.addEventListener("DOMContentLoaded", () => {
             units: product.units,
             productQuantity: product.quantity,
             total: product.total,
-            others: { name: "thickthighs" }, // Replace with actual data
+            // others: { name: sr }, // Replace with actual data
           }));
 
           fetch("http://127.0.0.1:5000/addSingleProductSale", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`, // Include token here
             },
             body: JSON.stringify(productSalesPayload),
           })
@@ -357,18 +554,21 @@ document.addEventListener("DOMContentLoaded", () => {
                         0
                       ),
                       numberOfItemsSold: selectedProducts.length,
-                      soldBy: "brownthighs", // Replace with actual data
+                      soldBy: user_name, // Replace with actual data
                       soldTo: soldTo,
                       paymentType: paymentType,
                       paymentStatus: paymentStatus,
                       amountPaid: amountPaid,
-                      others: { userName: "nakanjako" }, // Replace with actual data
+                      // others: { userName: user_name }, // Replace with actual data
                     };
 
                     fetch("http://127.0.0.1:5000/addSale", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
+                        Authorization: `Bearer ${localStorage.getItem(
+                          "token"
+                        )}`, // Include token here
                       },
                       body: JSON.stringify(salePayload),
                     })
@@ -387,7 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
                               units: product.units,
                               productQuantity: product.quantity,
                               total: product.total,
-                              others: { name: "thickthighs" }, // Replace with actual data
+                              // others: { name: user_name }, // Replace with actual data
                             })
                           );
 
@@ -424,36 +624,3 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch((error) => console.error("Error:", error));
   });
 });
-
-// ---log in aka index.hmtl page java script
-document.getElementById("loginForm").onsubmit = async function (event) {
-  event.preventDefault(); // Prevent form submission
-
-  // Get the phone number and password values
-  let phoneNumber = document.getElementById("phone").value;
-  let password = document.getElementById("password").value;
-
-  // Try to send the POST request to the /login endpoint
-  try {
-    let response = await fetch("http://127.0.0.1:5000/login", {
-      // Adjust URL as needed
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ phoneNumber, password }), // Send the payload
-    });
-
-    let result = await response.json(); // Parse the JSON response
-    if (result.status) {
-      console.log(">>>>>>>>token", result.token);
-      localStorage.setItem("token", result.token); // Store the token in local storage
-      window.location.href = "/bms/templates/usersDashboard.html"; // Redirect to the dashboard
-    } else {
-      alert(result.log); // Show an error message if login fails
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("An error occurred. Please try again."); // Handle any network or other errors
-  }
-};

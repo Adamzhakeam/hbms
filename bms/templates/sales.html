@@ -1,83 +1,153 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sales Module</title>
-    
-    <link rel="stylesheet" href="../../bms/static/sales.css"> <!-- Link to your CSS file -->
-    <script src="../../bms/static/script.js" defer></script> <!-- Link to your JavaScript file -->
-    
-
-</head>
-<body id="sales">
+    <link rel="stylesheet" href="../../bms/static/sales.css" />
+    <script src="../../bms/static/sales.js" defer></script>
+  </head>
+  <body id="sales">
     <div class="sales-container">
-        <form id="salesForm" class="sales-form">
-            <h2>Make a Sale</h2>
+      <form id="salesForm" class="sales-form">
+        <h2>Make a Sale</h2>
+        <div class="form-group">
+          <label for="product">Select Product</label>
+          <input
+            type="text"
+            id="productSearch"
+            placeholder="Search product..."
+          />
+          <select id="productDropdown" required>
+            <!-- Options will be populated dynamically -->
+          </select>
+        </div>
 
+        <div class="form-group">
+          <label for="quantity">Quantity</label>
+          <input
+            type="number"
+            id="quantity"
+            name="quantity"
+            min="1"
+            placeholder="Enter quantity"
+            required
+          />
+        </div>
+
+        <div class="form-group flex-group">
+          <div>
+            <label for="paymentType">Payment Type</label>
+            <select id="paymentType" name="paymentType" required>
+              <option value="cash">Cash</option>
+              <option value="mobileMoney">Mobile Money</option>
+              <option value="bankTransfer">Bank Transfer</option>
+            </select>
+          </div>
+          <div>
+            <label for="paymentStatus">Payment Status</label>
+            <select name="paymentStatus" id="paymentStatus" required>
+              <option value="cleared">Cleared</option>
+              <option value="partialPayment">Partial Payment</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="soldTo">Sold To</label>
+          <input
+            type="text"
+            id="soldTo"
+            name="soldTo"
+            placeholder="Enter Name"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="amountPaid">Amount Paid</label>
+          <input
+            type="number"
+            id="amountPaid"
+            name="amountPaid"
+            placeholder="Enter Amount"
+            required
+          />
+        </div>
+
+        <button type="button" id="addProduct">Add Product</button>
+        <button type="button" id="setDiscount">Set Discount</button>
+
+        <!-- Discount Modal -->
+        <div id="discountModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Set Discount</h2>
             <div class="form-group">
-                <label for="product">Select Product</label>
-                <input type="text" id="productSearch" placeholder="Search product...">
-                <select id="productDropdown" required>
-                    <!-- Options will be populated dynamically -->
-                </select>
+              <label for="discountType">Discount Type</label>
+              <select id="discountType">
+                <option value="percentage">Percentage</option>
+                <option value="flat">Flat</option>
+              </select>
             </div>
-
             <div class="form-group">
-                <label for="quantity">Quantity</label>
-                <input type="number" id="quantity" name="quantity" min="1" placeholder="Enter quantity" required>
+              <label for="discountValue">Discount Value</label>
+              <input type="text" id="discountValue" placeholder="Enter value" />
+              <small id="discountHint"></small>
             </div>
+            <button type="button" id="applyDiscount">Apply Discount</button>
+          </div>
+          <div>
+            <input
+              type="text"
+              id="category-input"
+              placeholder="Enter product category"
+            />
+            <button id="category-search-btn">Search by Category</button>
+          </div>
 
-            <div class="form-group flex-group">
-                <div>
-                    <label for="paymentType">Payment Type</label>
-                    <select id="paymentType" name="paymentType" required>
-                        <option value="cash">Cash</option>
-                        <option value="mobileMoney">Mobile Money</option>
-                        <option value="bankTransfer">Bank Transfer</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="paymentStatus">Payment Status</label>
-                    <select name="paymentStatus" id="paymentStatus" required>
-                        <option value="cleared">Cleared</option>
-                        <option value="partialPayment">Partial Payment</option>
-                    </select>
-                </div>
-            </div>
+          <div>
+            <input
+              type="text"
+              id="name-input"
+              placeholder="Enter product name"
+            />
+            <button id="name-search-btn">Search by Name</button>
+          </div>
 
-            <div class="form-group">
-                <label for="soldTo">Sold To</label>
-                <input type="text" id="soldTo" name="soldTo" placeholder="Enter Name" required>
-            </div>
+          <div id="product-container"></div>
 
-            <div class="form-group">
-                <label for="amountPaid">Amount Paid</label>
-                <input type="number" id="amountPaid" name="amountPaid" placeholder="Enter Amount" required>
-            </div>
+          <div>
+            <input
+              type="number"
+              id="discount-input"
+              placeholder="Enter discount percentage"
+            />
+            <button id="apply-discount-btn">Apply Discount</button>
+          </div>
+        </div>
 
-            <button type="button" id="addProduct">Add Product</button>
-            <h3>Selected Products</h3>
-            <table id="selectedProducts">
-                <thead>
-                    <tr>
-                        <th>Product</th>
-                        <th>Sale Price</th>
-                        <th>Quantity</th>
-                        <th>Total</th>
-                        <th>Remove</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Selected products will be added here dynamically -->
-                </tbody>
-            </table>
-            <div class="form-group">
-                <label for="grandTotal">Grand Total:</label>
-                <span id="grandTotal">0</span>
-            </div>
-            <button type="submit">Submit Sale</button>
-        </form>
+        <h3>Selected Products</h3>
+        <table id="selectedProducts">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Sale Price</th>
+              <th>Quantity</th>
+              <th>Total</th>
+              <th>Remove</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Selected products will be added here dynamically -->
+          </tbody>
+        </table>
+        <div class="form-group">
+          <label for="grandTotal">Grand Total:</label>
+          <span id="grandTotal">0</span>
+        </div>
+        <button type="submit">Submit Sale</button>
+      </form>
     </div>
-</body>
+  </body>
 </html>

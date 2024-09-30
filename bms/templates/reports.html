@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Sales</title>
-    <link rel="stylesheet" href="../../bms/static/productSales.css">
+    <title>Sales Reports</title>
+    <link rel="stylesheet" href="../static/reports.css">
+    <!DOCTYPE html>
     <!DOCTYPE html>
     <html>
     <head>
@@ -80,7 +81,7 @@
             // Function to fetch user data
             async function fetchUserData() {
                 let token = localStorage.getItem('token');
-                console.log('>>>>>>>>>token', token);
+                
                 if (!token) {
                     alert('User not authenticated');
                     window.location.href = '/bms/templates/index.html';
@@ -143,30 +144,32 @@
         </script>
     </body>
     </html>
-    <body id="productDetails">
+    
+</head>
+<body>
     <div class="container">
-        <h1>Product Sales Data</h1>
-        <div class="buttons">
-            <button id="fetchAllProductSalesBtn">Fetch All Product Sales</button>
-            <button id="fetchSpecificProductSalesBtn">Fetch Product Sales on Specific Date</button>
-            <button id="fetchProdutSalesFromToBtn">Fetch Products Sales From-To</button>
+        <h1>Generate Sales Reports</h1>
+        <button id="fetchAllSalesBtn">Fetch All Sales</button>
+        <button id="fetchSpecificDateBtn">Fetch Sales by Date</button>
+        <button id="fetchSalesFromToBtn">Fetch Sales from Date to Date</button>
+
+        <select id="dateRangeDropdown">
+            <option value="">Select Date Range</option>
+            <option value="today">Today</option>
+            <option value="thisWeek">This Week</option>
+            <option value="thisMonth">This Month</option>
+        </select>
+
+        <div id="dateInputs" style="display: none;">
+            <input type="date" id="startDate" />
+            <input type="date" id="endDate" />
         </div>
-        <table id="salesTable">
-            <thead>
-                <tr>
-                    <th>Sale ID</th>
-                    <th>Product ID</th>
-                    <th>Unit Price</th>
-                    <th>Quantity</th>
-                    <th>Units</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody id="salesTableBody">
-                <!-- Sales data will be inserted here -->
-            </tbody>
-        </table>
+
+        <button id="generateCSVBtn">Generate CSV Report</button>
+
+        <div id="reportResult"></div>
     </div>
-    <script src="../../bms/static/productSales.js"></script>
+
+    <script src="../static/reports.js"></script>
 </body>
 </html>
