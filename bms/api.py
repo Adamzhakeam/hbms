@@ -73,23 +73,44 @@ def sendMail():
 def sendDynamicMail(mailDetails:dict)->dict:
     '''
         this function is responsible for sending emails
-        the expected keys are 'recipients','message','subject' 
+        the expected keys are 'recipients','message','subject','imagePath'
     '''
     print('>>>>>>>',len(mailDetails['recipients']))
     if not len(mailDetails['recipients']):
         return jsonify({'status':False,'log':'no recipients to sendmail to '})
-    print('>>>>>>>>>>>>>>>>>>>>>>')
     msg = Message(
             mailDetails['subject'],
             sender='your business Point Of Sale System',
             recipients=mailDetails['recipients']
         )
     msg.body = mailDetails['message']
-        
+    if len(mailDetails['imagePath']):
+        with app.open_resource(mailDetails['imagePath'][0]) as qr:
+            msg.attach('ticket_adamzKata.png','image/png', qr.read())
+        mail.send(msg)
+        return {'status':True, 'log':'sent with an attachement'}
     with app.app_context():
             mail.send(msg)
         
     return jsonify({'status': True, 'log': ''})
+
+# -----endpoints to verify ticket 
+@app.route('/verifyQr', methods=['POST'])
+def verifyQr():
+    from tickets import verifyTicket
+    # Get the entire JSON payload
+    qrData = request.get_json()
+    # Extract the 'qr_data' value from the dictionary
+    qrString = qrData.get('qr_data')
+    
+    # Ensure qrString is not None and then split it
+    if qrString:
+        ticketId, receivedHash = qrString.split('|')
+        response = verifyTicket({'ticketId': ticketId})
+        return jsonify(response)
+    else:
+        return jsonify({'status': False, 'log': 'Invalid QR data'}), 400
+
     
 
 # ----------------------------the endpoint below is responsible for resetting product discount ---
@@ -107,10 +128,15 @@ def resetProductDiscount():
         print('>>>>>>',message)
         recipients = ['magezibrian108@gmail.com','receipereadalive@gmail.com'] 
         subject = 'the following products there discounts have expired and have been reset'
-        mailResponse  = sendDynamicMail({'message':message,'recipients':recipients,'subject':subject})
+        mailResponse  = sendDynamicMail({'message':message,'recipients':recipients,'subject':subject,'imagePath':[]})
         return mailResponse
     return jsonify(resetResponse['log'])
-        
+
+@app.route('/sendDynamicMail',methods=['POST'])
+def sendEmailWithAttachement():
+    payload = request.get_json()
+    response = sendDynamicMail(payload)
+    return jsonify(response)      
 # ------------------------------
 
 def role_required(allowed_roles):
@@ -941,6 +967,7 @@ def handleCreateUnit():
                     'log': f'The value for {key} is missing. Please provide it.'
                 })
         
+        print('>>>>>>>fromFrontend createUnit',payload)
         createRoleResponse  = createUnit(payload)
         
         if not createRoleResponse['status']:
@@ -1013,7 +1040,7 @@ def handleCreateCategory():
                     'status': False,
                     'log': f'The value for {key} is missing. Please provide it.'
                 })
-        
+        print('>>>>>>>>>>>>>>>>>>>from frontend',payload)
         createRoleResponse  = addCategoryToDb(payload)
         
         if not createRoleResponse['status']:
@@ -1394,3 +1421,4 @@ init()
 
 if __name__ == "__main__":
      app.run(debug=True,host = '0.0.0.0',port = 5000)
+    #  app.run(debug=True,host = '0.0.0.0',port = 8080)

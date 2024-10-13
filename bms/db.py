@@ -863,6 +863,8 @@ def createUnit(unitDetails:dict)->dict:
         this module is responsible for creation of roles and adding them to the db
         @param roleDetails:'entryId','timestamp','roleId','role','others'
     '''
+    # import pprint
+    print('>>>>>>>fromFrontend createUnit',unitDetails)
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
     with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
@@ -1855,7 +1857,45 @@ def setTieredDiscount(discountDetails: dict) -> dict:
             'status': True if applicable_discount > 0 else False
         }
 
+# --- the modules below are responsible for handling tickets 
+def insertTicketIntoDb(ticketDetails:dict)->dict:
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
+        insertionResponse = db.insert('tickets',[ticketDetails['ticketId'],ticketDetails['ticket'],False])
+        return insertionResponse 
+    
+def fetchTicketById(ticketDetails:dict)->dict:
+    '''
+        this function is responsible for fetching tickets by Id
+        @param ticketDetails:'ticketId' is the expected key
+    '''
+    
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTable = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath, dbTable, readonly=True) as db:
+        response = db.fetch('tickets',['*'],condition="ticketId = ?",conditionData=[ticketDetails['ticketId']],limit=1,
+                            returnDicts=True,returnNamespaces=False,parseJson=False,returnGenerator=False)
+        if not len(response):
+            return {'status':False, 'log':'This ticket doesn`t exist'}
+        if response[0]['verified']:
+            return {'status':False, 'log':'Ticket already Verified'}
+        return {'status':True,'log':'','data':response}
 
+def setVerificationStatus(ticketDetails:dict)->dict:
+    '''
+        this function is responsible for setting ticket
+        verification status to true
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    dbTables = kutils.config.getValue('bmsDb/tables')
+    
+    with kutils.db.Api(dbPath,dbTables, readonly=False) as db:
+        updateResponse = db.update('tickets',
+                                   ['verified'],[True],'ticketId=?',[ticketDetails['ticketId']])
+        return updateResponse
 # def setTiredDiscount()             
 def init():
     defaults = {
@@ -1874,7 +1914,9 @@ def init():
                             units               varchar (255) not null,
                             productSerialNumber  varchar (255) not null,
                             productImage          varchar (255) not null,
-                            others                 json
+                            others                 json,
+                            discount               varchar(255) not null,
+                            discountExpiry          varchar(255) not null
                           
 
             ''',
@@ -1988,7 +2030,12 @@ def init():
                                 openingBalance  integer(32) not null,
                                 closingBalance  integer(32) not null,
                                 others          json
-                ''' 
+                ''' ,
+                'tickets':'''
+                                ticketId    varchar(32) not null,
+                                ticket      varchar(32) not null,
+                                verified    boolean not null
+                '''
 
         }
     }
@@ -2090,7 +2137,10 @@ if __name__ == "__main__":
         'discountRate':'5000'
     }
     newRow = {
-        'discountExpiry':'varchar(32) not null default yyyymmdd '
+        'userId':'varchar(32) not null default xxx-xxx-xxx '
+    }
+    ticket = {
+        'ticketId':"ticketId5bqOmjF6RxJk"
     }
     
     def insertNewColumn(newColn):
@@ -2098,15 +2148,19 @@ if __name__ == "__main__":
         dbTable = kutils.config.getValue('bmsDb/tables')
         
         with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
-           response = db.alterTable('products',newColn)
+           response = db.alter('cashDrawer','userName','varchar(32) default xxxxxxxxx')
            return response 
     
+    
     import pprint
+    # print(fetchTicketById(ticket))
+    print(setVerificationStatus(ticket))
     # print(insertNewColumn(newRow))
+    # print(fetchAllCustomers())
     # print(resetProductDiscountDetails()['updatedProducts'])
     # pprint.pprint(fetchAllProductsWithDiscount())
     # print(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
-    print(setProductFlatDiscountPrice(discountingDetails))
+    # print(setProductFlatDiscountPrice(discountingDetails))
     # pprint.pprint(fetchAllProducts())  
     # print(fetchRole({'roleId':'uOVMbPurWTjq'})['log'][0])  
     # print(createTables())
@@ -2126,7 +2180,7 @@ if __name__ == "__main__":
     # date = kutils.dates.today()
     # print(date)
     # print(createUser(user))
-    # print(resetUserPassword({'phoneNumber':'072442222'}))
+    # print(resetUserPassword({'phoneNumber':'0772442222'}))
     # print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
