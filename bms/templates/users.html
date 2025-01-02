@@ -71,11 +71,11 @@
 
     <script>
         // Function to fetch user data
-        async function fetchUserData() {
+        async function fetchuserData() {
             let token = localStorage.getItem('token');
             console.log('>>>>>>>>>token', token);
             if (!token) {
-                alert('User not authenticated');
+                alert('user not authenticated');
                 window.location.href = '/bms/templates/index.html';
                 return;
             }
@@ -121,7 +121,7 @@
         }
 
         // Fetch user data on page load
-        window.onload = fetchUserData;
+        window.onload = fetchuserData;
 
         // Home button function
         function goHome() {
@@ -141,20 +141,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>user Management</title>
     <link rel="stylesheet" href="../../bms/static/users.css">
     <head>
 
 </head>
 <body>
-    <button id="createUserBtn" class="btn btn-primary">Create User</button>
+    <button id="createuserBtn" class="btn btn-primary">Create user</button>
 
-    <div id="createUserModal" class="modal">
+    <div id="createuserModal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>Create User</h2>
-            <form id="createUserForm">
-                <label for="username">Username:</label>
+            <h2>Create user</h2>
+            <form id="createuserForm">
+                <label for="username">username:</label>
                 <input type="text" id="username" name="userName" required><br><br>
                 
                 <label for="password">Password:</label>
@@ -179,14 +179,14 @@
     <table id="userTable">
         <thead>
             <tr>
-                <th>Username</th>
+                <th>username</th>
                 <th>Phone Number</th>
                 <th>Role</th>
                 <th>Action</th>
             </tr>
         </thead>
         <tbody id="userTableBody">
-            <!-- User rows will be dynamically populated -->
+            <!-- user rows will be dynamically populated -->
         </tbody>
     </table>
 

@@ -636,16 +636,19 @@ def addSingleProductSale(singleProductSales: list) -> dict:
 
 # --#-- the modules below are responsible for handling users----- #---#--#--#-
 
-def createUser(userDetails:dict)->dict:
+def createuser(userDetails:dict)->dict:
     '''
         this module is responsible for creation of a user 
-        @param userDetails:'entryId','timestamp','userId','userName','password',
+        @param userDetails:'userName','password',
                             'phoneNumber','roleId','email' are the expected keys 
         returns a dictionary with status and log 
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
     passwordHash = kutils.encryption.hash(userDetails['password'])
+    entryId = kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    userId = kutils.codes.new()
     with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
         phoneNumberResponse = db.fetch(
             'users',
@@ -662,12 +665,12 @@ def createUser(userDetails:dict)->dict:
             return{'status':False, 'log':'phoneNumber already exists attached to another user please try another'}
         userCreationResponse = db.insert(
             'users',
-            [userDetails['entryId'],userDetails['timestamp'],userDetails['userId'],userDetails['userName'],
+            [entryId,timestamp,userId,userDetails['userName'],
              passwordHash,userDetails['phoneNumber'],userDetails['email'],userDetails['roleId']]
         )
     return(userCreationResponse)
 
-def fetchAllUsers()->list:
+def fetchAllusers()->list:
     '''
         this function is responsible for fetching customer from db
         by use of phone number
@@ -691,7 +694,7 @@ def fetchAllUsers()->list:
             'status':True,
             'log':customerFetchResponse
         }
-def fetchUserByPhoneNumber(userDetails:dict)->dict:
+def fetchuserByPhoneNumber(userDetails:dict)->dict:
     '''
     this module is responsible for fetching user by phone number
     @param userDetails:expected keys 'phoneNumber'
@@ -715,7 +718,7 @@ def fetchUserByPhoneNumber(userDetails:dict)->dict:
             'log':userFetchResponse
         }
 
-def insertRevokedUser(userDetails:dict) -> dict:
+def insertRevokeduser(userDetails:dict) -> dict:
     '''
         this module is responsible for inserting a revoked user into db 
         @param userDetails:entryId, timestamp, userId,userName,password ,phoneNumber, email,roleId,other the following 
@@ -731,13 +734,13 @@ def insertRevokedUser(userDetails:dict) -> dict:
                 'status':False,
                 'log':'user can`t revoke themselves'
             }
-        revokedUserInsertionResponse = db.insert( 'revokedUser',
+        revokeduserInsertionResponse = db.insert( 'revokeduser',
                                                  [entryId,timestamp,userDetails['userId'],userDetails['userName'],
                                                       userDetails['password'],userDetails['phoneNumber'],userDetails['email'],
                                                       userDetails['roleId'],userDetails['other']])
-        return revokedUserInsertionResponse   
+        return revokeduserInsertionResponse   
     
-def resetUserPassword(userDetails:dict)->dict:
+def resetuserPassword(userDetails:dict)->dict:
     '''
         this function is responsible for resetting users password
         @param userDetails: 'phoneNumber' is the expected key  
@@ -746,8 +749,8 @@ def resetUserPassword(userDetails:dict)->dict:
     dbTable = kutils.config.getValue('bmsDb/tables')
     newPassword = kutils.codes.new(8)
     passwordHash = kutils.encryption.hash(newPassword)
-    if fetchUserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['status']:
-        email = fetchUserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['log'][0]['email']
+    if fetchuserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['status']:
+        email = fetchuserByPhoneNumber({'phoneNumber':userDetails['phoneNumber']})['log'][0]['email']
         with kutils.db.Api(dbPath,dbTable,readonly=False) as db:
             passwordUpdateResponse = db.update('users',
                                                ['password'],[passwordHash],'phoneNumber = ?',
@@ -788,10 +791,14 @@ def createRoles(roleDetails:dict)->dict:
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
+    entryId = kutils.codes.new()
+    roleId = kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    role = roleDetails['role'].upper()
     with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
         roleInsertionResponse = db.insert(
             'roles',
-            [roleDetails['entryId'],roleDetails['timestamp'],roleDetails['roleId'],roleDetails['role'],roleDetails['others']]
+            [entryId,timestamp,roleId,role,roleDetails['others']]
         )
         return roleInsertionResponse
     
@@ -864,13 +871,17 @@ def createUnit(unitDetails:dict)->dict:
         @param roleDetails:'entryId','timestamp','roleId','role','others'
     '''
     # import pprint
-    print('>>>>>>>fromFrontend createUnit',unitDetails)
+    # print('>>>>>>>fromFrontend createUnit',unitDetails)
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
+    entryId = kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    unitId = kutils.codes.new()
+    unit = unitDetails['unit'].upper()
     with kutils.db.Api(dbPath,dbTable, readonly=False) as db:
         roleInsertionResponse = db.insert(
             'units',
-            [unitDetails['entryId'],unitDetails['timestamp'],unitDetails['unitId'],unitDetails['unit'],unitDetails['others']]
+            [entryId,timestamp,unitId,unit,unitDetails['others']]
         )
         return roleInsertionResponse
     
@@ -1030,7 +1041,7 @@ def fetchAllCustomers()->dict:
         if len(customerFetchResponse) == 0:
             return{
                 'status':False,
-                'log':'you havent registered any customers yet'
+                'log':'you haven`t registered any customers yet'
                 }
         return {
             'status':True,
@@ -1047,26 +1058,31 @@ def fetchAllCustomers()->dict:
 def addCategoryToDb(categoryDetails:dict)->dict:
     '''
         this function is responsible for adding category to Db
-        @param categoryDetails:'entryId','timestamp','categoryId','category',others are the expected keys
+        @param categoryDetails:'category',others are the expected keys
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
+    entryId = kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    categoryId = 'categoryId'+kutils.codes.new()
+    # category = 
+    categoryName = categoryDetails['category'].upper()
     with kutils.db.Api(dbPath, dbTable, readonly=False) as db:
         categoryFetchResponse = db.fetch(
             'categories',
             ['category'],
             'category = ?',
-            [categoryDetails['category']],limit = 1,
+            [categoryName],limit = 1,
             returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
         )
         if len(categoryFetchResponse) > 0:
-            return{'status':False, 'log':f'{categoryDetails["category"]} has already been registered'}
+            return{'status':False, 'log':f'{categoryName} has already been registered'}
     
 
         categoryInsertionResponse = db.insert(
             'categories',
-            [categoryDetails['entryId'],categoryDetails['timestamp'],categoryDetails['categoryId'],
-             categoryDetails['category'],categoryDetails['others']]
+            [entryId,timestamp,categoryId,
+             categoryName,categoryDetails['others']]
         )
     return categoryInsertionResponse
 
@@ -1088,7 +1104,7 @@ def fetchCategory(categoryName:str)->list:
          if len(categoryFetchResponse) == 0:
              return{
                  'status':False,
-                 'log':f"there is no category rigesterd under the name{categoryName}"
+                 'log':f"there is no category regestered under the name{categoryName}"
              }
     return{
         'status':True,
@@ -1491,7 +1507,7 @@ def fetchSpecificExpensesFromTo(dateDetails:dict)->dict:
         
 #-------the modules below are for removing a user from database----
 
-def removeUserFromDb(userDetails:dict)->dict:
+def removeuserFromDb(userDetails:dict)->dict:
     '''
         this function deletes user from database table users
         @param: expected key is 'phoneNumber'
@@ -1507,22 +1523,22 @@ def removeUserFromDb(userDetails:dict)->dict:
             ) 
     return userDeleteResponse
 
-def revokeUser(userDetails:dict)->dict:
+def revokeuser(userDetails:dict)->dict:
     '''
     this function is responsible for revoking user
     @param userDetails: the expected keys are 'phoneNumber','other' 
     '''
-    userToRevoke = fetchUserByPhoneNumber(userDetails)
+    userToRevoke = fetchuserByPhoneNumber(userDetails)
     if userToRevoke['status']:
         userToRevoke['log'][0]['other'] = userDetails['other']
         # print('>>>',userToRevoke['log'][0])
-        transferUserResponse = insertRevokedUser(userToRevoke['log'][0])
-        if transferUserResponse['status']:
-           userDropResponse  = removeUserFromDb(userDetails)
+        transferuserResponse = insertRevokeduser(userToRevoke['log'][0])
+        if transferuserResponse['status']:
+           userDropResponse  = removeuserFromDb(userDetails)
            if userDropResponse['status']:
                return {'status':True,'log':f"user {userToRevoke['log'][0]['userName'] } revoked successfully"}
            return userDropResponse
-        return transferUserResponse 
+        return transferuserResponse 
     return userToRevoke
 
 # --- the modules below are responsible for handling discounts 
@@ -1896,7 +1912,64 @@ def setVerificationStatus(ticketDetails:dict)->dict:
         updateResponse = db.update('tickets',
                                    ['verified'],[True],'ticketId=?',[ticketDetails['ticketId']])
         return updateResponse
-# def setTiredDiscount()             
+# def setTiredDiscount()          
+
+# ----- the code below is responsible for handling cashdrawer reconciliation-------
+def addOpeningBalanceToCashdrawer(openingDetails:dict)->dict:
+    '''
+        the expected keys for this function are 'entryId','timestamp','cashDrawerId','openingBalance'
+        ,'closingBalance','openingBalance','others'
+    '''
+    entryId = 'entryId'+kutils.codes.new()
+    timestamp = kutils.dates.currentTimestamp()
+    date = kutils.dates.today()
+    cashDrawerId = 'cashDrawerId'+kutils.codes.new()
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    table = kutils.config.getValue('bmsDb/tables')
+    closingBalance = 0
+    
+    with kutils.db.Api(dbPath,table,readonly=False) as db:
+        insertionResponse = db.insert('cashDrawer',
+                                      [entryId,timestamp,date,cashDrawerId,openingDetails['openingBalance'],
+                                       openingBalance['userName'],closingBalance,'notClosed','00-00-00',{}])
+        return insertionResponse
+    
+def fetchCashDrawerByDate()->dict:
+    '''
+        this function is responsible for fetching  cashDrawer by details
+        @param:none
+    '''
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    table = kutils.config.getValue('bmsDb/tables')
+    today = kutils.dates.today()
+    
+    with kutils.db.Api(dbPath,table,readonly=False) as db:
+        fetchResponse = db.fetch('cashDrawer',['*'],'date=?',[today],limit=1,
+                                 returnDicts=True,returnNamespaces=False,parseJson=False,returnGenerator=False)
+    return fetchResponse
+        
+    
+def  addClosingBalance(closingDetails:dict)->dict:
+    '''
+        this function  is responsible for updating the closing balance of the cashDrawer
+        @param:'closingBalance','userName
+    '''  
+    dbPath = kutils.config.getValue('bmsDb/dbPath')
+    table = kutils.config.getValue('bmsDb/tables')
+    timestamp = kutils.dates.currentTimestamp()
+    date = kutils.dates.today()
+    fetchResponse = fetchCashDrawerByDate()
+    # dictToUpdate = fetchResponse[0]['others']
+    # dictToUpdate = {'closingBalanceBy':closingDetails['userName'],'timeOfClosing':timestamp}
+    with kutils.db.Api(dbPath,table,readonly=False) as db:
+        updateResponse = db.update('cashDrawer',['closingBalance','closingBalanceBy','closingTime'],
+                                   [closingDetails['closingBalance'],closingDetails['userName'],timestamp],
+                                   'date=?',[date])
+    return updateResponse
+    
+
+    
+ 
 def init():
     defaults = {
         'rootPath':'/home/predator/Desktop/hbms',
@@ -1980,7 +2053,7 @@ def init():
                             entryId             varchar(32) not null,
                             timestamp           varchar(32) not null,
                             unitId              varchar(32) not null,
-                            unit                varchar(32) not null,
+                            unit                varchar(32) UNIQUE not null,
                             others              json
                 ''',
                 'users':'''
@@ -1989,13 +2062,13 @@ def init():
                             userId              varchar(32) not null,
                             userName            varchar(32) not null,
                             password            varchar(32) not null,
-                            phoneNumber         integer(32) not null,
-                            email               varchar(32) not null,
+                            phoneNumber         integer(32) UNIQUE not null,
+                            email               varchar(32) UNIQUE not null,
                             roleId              varchar(32) not null
                             
                 
                 ''',
-                'revokedUser':'''
+                'revokeduser':'''
                                 entryId     varchar(32) not null,
                                 timestamp   varchar(32) not null,
                                 userId      varchar(32) not null,
@@ -2010,26 +2083,30 @@ def init():
                 'roles':'''
                             entryId             varchar(32) not null,
                             timestamp           varchar(32) not null,
-                            roleId              varchar(32) not null,
-                            role                varchar(32) not null,
+                            roleId              varchar(32) UNIQUE not null,
+                            role                varchar(32) UNIQUE not null,
                             others              json
                 
                 ''',
                 'categories':'''
                                 entryId         varchar(32) not null,
                                 timestamp       varchar(32) not null,
-                                categoryId     varchar(32) not null,
-                                category        varchar(32) not null,
+                                categoryId      varchar(32) not null,
+                                category        varchar(32) UNIQUE not null,
                                 others          json
                                 
                 ''',
                 'cashDrawer':'''
-                                entryId         varchar(32) not null,
-                                timestamp       varchar(32) not null,
-                                cashDrawerId    varchar(32) not null,
-                                openingBalance  integer(32) not null,
-                                closingBalance  integer(32) not null,
-                                others          json
+                                entryId             varchar(32) not null,
+                                timestamp           varchar(32) not null,
+                                date                varchar(32) UNIQUE not null,
+                                cashDrawerId        varchar(32) not null,
+                                openingBalance      integer(32) not null,
+                                openingBalanceBy    varchar(32) not null,
+                                closingBalance      integer(32) not null,
+                                closingBalanceBy    varchar(32) not null,
+                                closingTime         varchar(32) not null,
+                                others              json
                 ''' ,
                 'tickets':'''
                                 ticketId    varchar(32) not null,
@@ -2108,12 +2185,12 @@ if __name__ == "__main__":
         'entryId':kutils.codes.new(),
         'timestamp':kutils.dates.currentTimestamp(),
         'userId':kutils.codes.new(),
-        'userName':'aghi',
+        'userName':'Parrot',
         'password':'hello123',
-        'roles':'admin',
-        'email':'johnaghi@gmail.com',
-        'phoneNumber':'0772462452',
-        'roleId':'1ErdjA017z5Z'
+        # 'roles':'MANAGER',
+        'email':'adamzhakeam@gmail.com',
+        'phoneNumber':'0760154361',
+        'roleId':'Da9zqHxXnYwm'
     }
     
     aghi = {
@@ -2143,6 +2220,15 @@ if __name__ == "__main__":
         'ticketId':"ticketId5bqOmjF6RxJk"
     }
     
+    openingBalance = {
+        'openingBalance':50000,
+        'userName':'adamzkata'
+    }
+    
+    closingDetails = {
+        'closingBalance':70000,
+        'userName':'sufraKagimu'
+    }
     def insertNewColumn(newColn):
         dbPath = kutils.config.getValue('bmsDb/dbPath')
         dbTable = kutils.config.getValue('bmsDb/tables')
@@ -2154,7 +2240,7 @@ if __name__ == "__main__":
     
     import pprint
     # print(fetchTicketById(ticket))
-    print(setVerificationStatus(ticket))
+    # print(setVerificationStatus(ticket))
     # print(insertNewColumn(newRow))
     # print(fetchAllCustomers())
     # print(resetProductDiscountDetails()['updatedProducts'])
@@ -2162,7 +2248,10 @@ if __name__ == "__main__":
     # print(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
     # print(setProductFlatDiscountPrice(discountingDetails))
     # pprint.pprint(fetchAllProducts())  
-    # print(fetchRole({'roleId':'uOVMbPurWTjq'})['log'][0])  
+    # print(createRoles({'role':'MANAGER','others':{}})) 
+    # print(addOpeningBalanceToCashdrawer(openingBalance)) 
+    # print(fetchCashDrawerByDate())
+    # print(addClosingBalance(closingDetails))
     # print(createTables())
     # print(addExpenseToDb(expense))
     # print(fetchExpensesFromDb())
@@ -2172,15 +2261,15 @@ if __name__ == "__main__":
     # print(fetchAllSales())
     # print(fetchSpecificProductSale({'saleDate':'2024-07-16'}))
     # print(fetchSpecificProductSalesFromTo({'dateFrom':'2024-08-16','dateTo':'2024-08-02'}))
-    # print('>>>>>>>>>>>>',removeUserFromDb(aghi))
-    # pprint.pprint(fetchAllUsers())
-    # print(fetchUserByPhoneNumber({'phoneNumber':'0772442222'})['log'][0]['userName'])
-    # print(revokeUser(aghi))
+    # print('>>>>>>>>>>>>',removeuserFromDb(aghi))
+    # pprint.pprint(fetchAllusers())
+    # print(fetchuserByPhoneNumber({'phoneNumber':'0772442222'})['log'][0]['userName'])
+    # print(revokeuser(aghi))
     # print(fetchSpecificSale({'saleDate':'2024-07-09'}))
     # date = kutils.dates.today()
     # print(date)
-    # print(createUser(user))
-    # print(resetUserPassword({'phoneNumber':'0772442222'}))
+    print(createuser(user))
+    # print(resetuserPassword({'phoneNumber':'0772442222'}))
     # print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
@@ -2188,6 +2277,7 @@ if __name__ == "__main__":
     # print(updateProductQuantity(si))
     # print(editParticularProduct(productDetails))
     # knockedUp print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))
+    # print(addCategoryToDb({'category':'BREMBO','others':{}}))
     
     
     

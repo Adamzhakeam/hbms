@@ -92,11 +92,11 @@
 
         <script>
           // Function to fetch user data
-          async function fetchUserData() {
+          async function fetchuserData() {
             let token = localStorage.getItem("token");
             console.log(">>>>>>>>>token", token);
             if (!token) {
-              alert("User not authenticated");
+              alert("user not authenticated");
               window.location.href = "/bms/templates/index.html";
               return;
             }
@@ -142,7 +142,7 @@
           }
 
           // Fetch user data on page load
-          window.onload = fetchUserData;
+          window.onload = fetchuserData;
 
           // Home button function
           function goHome() {
@@ -323,7 +323,7 @@
           <div class="profile">
             <div class="info">
               <p><b>Babar</b></p>
-              <p>Admin</p>
+              <p>ADMIN</p>
               <small class="text-muted"></small>
             </div>
             <div class="profile-photo">
@@ -386,7 +386,7 @@
                 </script>
               </div>
               <div class="message">
-                <p><b>Users</b>Create Or Edit</p>
+                <p><b>users</b>Create Or Edit</p>
               </div>
             </div>
           </div>

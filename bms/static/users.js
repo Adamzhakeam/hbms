@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const createUserBtn = document.getElementById("createUserBtn");
-  const createUserModal = document.getElementById("createUserModal");
+  const createuserBtn = document.getElementById("createuserBtn");
+  const createuserModal = document.getElementById("createuserModal");
   const closeModal = document.querySelector(".close");
-  const createUserForm = document.getElementById("createUserForm");
+  const createuserForm = document.getElementById("createuserForm");
   const roleSelect = document.getElementById("roles");
   const userTableBody = document.getElementById("userTableBody");
 
@@ -30,28 +30,28 @@ document.addEventListener("DOMContentLoaded", () => {
     .catch((error) => console.error("Error fetching roles:", error));
 
   // Show user creation modal on button click
-  createUserBtn.addEventListener("click", () => {
-    createUserModal.style.display = "block";
+  createuserBtn.addEventListener("click", () => {
+    createuserModal.style.display = "block";
     document.body.classList.add("blur");
   });
 
   // Close modal when close button or outside modal is clicked
   closeModal.onclick = function () {
-    createUserModal.style.display = "none";
+    createuserModal.style.display = "none";
     document.body.classList.remove("blur");
   };
 
   window.onclick = function (event) {
-    if (event.target === createUserModal) {
-      createUserModal.style.display = "none";
+    if (event.target === createuserModal) {
+      createuserModal.style.display = "none";
       document.body.classList.remove("blur");
     }
   };
 
   // Handle form submission for creating user
-  createUserForm.addEventListener("submit", (event) => {
+  createuserForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    const formData = new FormData(createUserForm);
+    const formData = new FormData(createuserForm);
     const payload = {};
 
     // Manually add form data to payload
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add the selected roleId to the payload
     payload["roleId"] = roleSelect.value;
 
-    fetch("http://127.0.0.1:5000/addUser", {
+    fetch("http://127.0.0.1:5000/adduser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -73,9 +73,9 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.status) {
-          alert("User created successfully");
-          fetchAllUsers();
-          createUserModal.style.display = "none";
+          alert("user created successfully");
+          fetchAllusers();
+          createuserModal.style.display = "none";
           document.body.classList.remove("blur");
         } else {
           alert("Error creating user: " + data.log);
@@ -85,8 +85,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Function to fetch all users and populate the table
-  function fetchAllUsers() {
-    fetch("http://127.0.0.1:5000/fetchAllUsers", {
+  function fetchAllusers() {
+    fetch("http://127.0.0.1:5000/fetchAllusers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((response) => response.json())
       .then((data) => {
         if (data.status) {
-          displayUsers(data.log); // Updated to data.log
+          displayusers(data.log); // Updated to data.log
         } else {
           alert("Error fetching users: " + data.log);
         }
@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Function to display users in the table
-  function displayUsers(users) {
+  function displayusers(users) {
     userTableBody.innerHTML = ""; // Clear previous data
     users.forEach((user) => {
       const row = document.createElement("tr");
@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <td>${user.userName}</td>
                 <td>${user.phoneNumber}</td>
                 <td id="role_${user.userId}">Loading...</td> <!-- Placeholder for role name -->
-                <td><button onclick="revokeUser('${user.phoneNumber}')">Revoke</button></td>
+                <td><button onclick="revokeuser('${user.phoneNumber}')">Revoke</button></td>
             `;
       userTableBody.appendChild(row);
 
@@ -160,10 +160,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initial fetch of all users when the page loads
-  fetchAllUsers();
+  fetchAllusers();
 });
 
-async function revokeUser(phoneNumber) {
+async function revokeuser(phoneNumber) {
   let token = localStorage.getItem("token");
   // console.log(">>>>>>>>>token", token);
   let response = await fetch("http://127.0.0.1:5000/profile", {
@@ -182,7 +182,7 @@ async function revokeUser(phoneNumber) {
 
   console.log("Opening edit modal for productId:", phoneNumber); // Debugging log
   try {
-    const response = await fetch("http://127.0.0.1:5000/revokeUser", {
+    const response = await fetch("http://127.0.0.1:5000/revokeuser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

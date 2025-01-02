@@ -1,20 +1,54 @@
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+/* General Styles */
+body, html {
     margin: 0;
     padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
+    font-family: Arial, sans-serif;
 }
 
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.header .buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.header .buttons button {
+    padding: 5px 10px;
+    border: none;
+    background-color: #fff;
+    color: #4CAF50;
+    cursor: pointer;
+}
+
+.header .buttons button:hover {
+    background-color: #ddd;
+}
+
+.header .user-info {
+    font-size: 1em;
+}
+
+/* Container Styles */
 .container {
     background: #fff;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     max-width: 600px;
     width: 100%;
+    margin: 20px auto;
     box-sizing: border-box;
 }
 
@@ -45,6 +79,7 @@ button:hover {
     background-color: #0056b3;
 }
 
+/* Table Styles */
 table {
     width: 100%;
     border-collapse: collapse;
@@ -65,5 +100,13 @@ th, td {
     input, button {
         font-size: 0.9rem;
         padding: 8px;
+    }
+
+    .header h1 {
+        font-size: 1.2em;
+    }
+
+    .header .user-info {
+        font-size: 0.9em;
     }
 }
