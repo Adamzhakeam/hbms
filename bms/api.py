@@ -232,8 +232,9 @@ def login():
     from db import login
     data = request.get_json()
     phoneNumber = data.get('phoneNumber')
+    email = data.get('email')
     password = data.get('password')
-    user = login({'phoneNumber': phoneNumber, 'password': password})
+    user = login({'phoneNumber': phoneNumber,'email':email, 'password': password})
     if user['status']:
             user_id = user['log'][0]['userId']
             role_id = user['log'][0]['roleId']

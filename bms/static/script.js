@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedProducts = []; // This will store the selected products for the sale
 
   // Fetch products from the backend
-  fetch("http://127.0.0.1:5000/fetchAllProducts", {
+  fetch("http://127.0.0.1:5000 /fetchAllProducts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
       others: { userName: "nakanjako" }, // Replace with actual data
     };
 
-    fetch("http://127.0.0.1:5000/addSale", {
+    fetch("http://127.0.0.1:5000 /addSale", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -181,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
             others: { name: "thickthighs" }, // Replace with actual data
           }));
 
-          fetch("http://127.0.0.1:5000/addSingleProductSale", {
+          fetch("http://127.0.0.1:5000 /addSingleProductSale", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -216,7 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   let selectedProducts = []; // This will store the selected products for the sale
 
                   // Fetch products from the backend
-                  fetch("http://127.0.0.1:5000/fetchAllProducts", {
+                  fetch("http://127.0.0.1:5000 /fetchAllProducts", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -365,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
                       others: { userName: "nakanjako" }, // Replace with actual data
                     };
 
-                    fetch("http://127.0.0.1:5000/addSale", {
+                    fetch("http://127.0.0.1:5000 /addSale", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -391,7 +391,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             })
                           );
 
-                          fetch("http://127.0.0.1:5000/addSingleProductSale", {
+                          fetch("http://127.0.0.1:5000 /addSingleProductSale", {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",
@@ -429,31 +429,34 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("loginForm").onsubmit = async function (event) {
   event.preventDefault(); // Prevent form submission
 
-  // Get the phone number and password values
-  let phoneNumber = document.getElementById("phone").value;
+  let input = document.getElementById("phone").value;
   let password = document.getElementById("password").value;
 
-  // Try to send the POST request to the /login endpoint
+  // Check if input contains letters
+  let hasLetters = /[a-zA-Z]/.test(input);
+
+  let phoneNumber = hasLetters ? "" : input;
+  let email = hasLetters ? input : "";
+
   try {
-    let response = await fetch("http://127.0.0.1:5000/login", {
-      // Adjust URL as needed
+    let response = await fetch("http://127.0.0.1:5000 /login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ phoneNumber, password }), // Send the payload
+      body: JSON.stringify({ phoneNumber, email, password }), // Send modified payload
     });
 
     let result = await response.json(); // Parse the JSON response
     if (result.status) {
-      console.log(">>>>>>>>token", result.token);
-      localStorage.setItem("token", result.token); // Store the token in local storage
-      window.location.href = "/bms/templates/usersDashboard.html"; // Redirect to the dashboard
+      // console.log(">>>>>>>>token", result.token);
+      localStorage.setItem("token", result.token);
+      window.location.href = "/bms/templates/usersDashboard.html";
     } else {
-      alert(result.log); // Show an error message if login fails
+      alert(result.log); // Show error message if login fails
     }
   } catch (error) {
     console.error("Error:", error);
-    alert("An error occurred. Please try again."); // Handle any network or other errors
+    alert("An error occurred. Please try again.");
   }
 };

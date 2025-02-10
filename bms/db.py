@@ -763,7 +763,7 @@ def resetuserPassword(userDetails:dict)->dict:
 def login(userDetails:dict)->dict:
     '''
         this function is responsible for verifying credentials from the front end 
-        @param userDetails:'phoneNumber','password' are the expected keys  
+        @param userDetails:'phoneNumber','email','password' are the expected keys  
     '''
     dbPath = kutils.config.getValue('bmsDb/dbPath')
     dbTable = kutils.config.getValue('bmsDb/tables')
@@ -771,8 +771,8 @@ def login(userDetails:dict)->dict:
     with kutils.db.Api(dbPath,dbTable, readonly=True) as db:
         userFetchResponse = db.fetch(
             'users',
-            ['userId','userName','phoneNumber','password','roleId'],'phoneNumber=? and password=?',
-            [userDetails['phoneNumber'],passwordHash],
+            ['userId','userName','phoneNumber','password','roleId'],'phoneNumber=? or email=? and password=? ',
+            [userDetails['phoneNumber'],userDetails['email'],passwordHash],
             limit = 1,
             returnDicts=True,
             returnNamespaces=False,
@@ -781,7 +781,7 @@ def login(userDetails:dict)->dict:
         )
         if len(userFetchResponse) > 0:
             return {'status':True, 'log':userFetchResponse}
-        return{'status':False, 'log':'You have input a wrong password'}
+        return{'status':False, 'log':'You have input a wrong password or email/phoneNumber'}
     
 # -- this module responsible for creating roles 
 def createRoles(roleDetails:dict)->dict:
@@ -2189,7 +2189,7 @@ if __name__ == "__main__":
         'password':'hello123',
         # 'roles':'MANAGER',
         'email':'adamzhakeam@gmail.com',
-        'phoneNumber':'0760154361',
+        'phoneNumber':'',
         'roleId':'Da9zqHxXnYwm'
     }
     
@@ -2268,9 +2268,9 @@ if __name__ == "__main__":
     # print(fetchSpecificSale({'saleDate':'2024-07-09'}))
     # date = kutils.dates.today()
     # print(date)
-    print(createuser(user))
+    # print(createuser(user))
     # print(resetuserPassword({'phoneNumber':'0772442222'}))
-    # print(login(user))
+    print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
     # pprint.pprint(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
