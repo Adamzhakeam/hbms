@@ -61,7 +61,7 @@ verifyBtn.addEventListener("click", () => {
   }
 
   // Sending QR data to the /verifyQr endpoint
-  fetch("http://127.0.0.1:5000/verifyQr", {
+  fetch("http://127.0.0.1:5000 /verifyQr", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

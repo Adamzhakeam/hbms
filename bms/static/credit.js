@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentCreditId, currentSaleId, currentAmountInDebt, currentPaymentStatus;
 
     function fetchCredits() {
-        fetch('http://127.0.0.1:5000/fetchAllCredits', {
+        fetch('http://127.0.0.1:5000 /fetchAllCredits', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function editCredit(payload) {
-        fetch('http://127.0.0.1:5000/editCredit', {
+        fetch('http://127.0.0.1:5000 /editCredit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

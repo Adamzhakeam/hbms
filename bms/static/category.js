@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
     payload["others"] = {"createdBy":"parrot"};
 
     try {
-      const response = await fetch("http://127.0.0.1:5000/createCategory", {
+      const response = await fetch("http://127.0.0.1:5000 /createCategory", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fetch and display all categories
   function fetchAllCategories() {
-    fetch("http://127.0.0.1:5000/fetchAllCategories", {
+    fetch("http://127.0.0.1:5000 /fetchAllCategories", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

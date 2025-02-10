@@ -15,7 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
             others: { 'userName': 'camero' }
         };
 
-        fetch('http://127.0.0.1:5000/createRole', {
+        fetch('http://127.0.0.1:5000 /createRole', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function fetchAllRoles() {
-        fetch('http://127.0.0.1:5000/fetchAllRoles', {
+        fetch('http://127.0.0.1:5000 /fetchAllRoles', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -78,13 +78,13 @@ async function fetchSales(endpoint, params = {}) {
 
 // Event listeners
 document.getElementById('fetchAllSalesBtn').addEventListener('click', () => {
-    fetchSales('http://127.0.0.1:5000/fetchAllSalesReports');
+    fetchSales('http://127.0.0.1:5000 /fetchAllSalesReports');
 });
 
 document.getElementById('fetchSpecificDateBtn').addEventListener('click', () => {
     const date = prompt('Enter the date (YYYY-MM-DD):');
     if (date) {
-        fetchSales('http://127.0.0.1:5000/fetchSpecificSalesReports', { saleDate: date });
+        fetchSales('http://127.0.0.1:5000 /fetchSpecificSalesReports', { saleDate: date });
     }
 });
 
@@ -93,7 +93,7 @@ document.getElementById('fetchSalesFromToBtn').addEventListener('click', () => {
     const endDate = prompt('Enter the end date (YYYY-MM-DD):');
     
     if (startDate && endDate) {
-        fetchSales('http://127.0.0.1:5000/fetchSpecificSalesFromToReports', { dateFrom: startDate, dateTo: endDate });
+        fetchSales('http://127.0.0.1:5000 /fetchSpecificSalesFromToReports', { dateFrom: startDate, dateTo: endDate });
     }
 });
 
@@ -105,19 +105,19 @@ document.getElementById('generateCSVBtn').addEventListener('click', () => {
     switch (dateRange) {
         case 'today':
             const today = new Date().toISOString().split('T')[0];
-            endpoint = 'http://127.0.0.1:5000/fetchSpecificSalesReports';
+            endpoint = 'http://127.0.0.1:5000 /fetchSpecificSalesReports';
             params = { saleDate: today };
             break;
         case 'thisWeek':
             const startOfWeek = getStartOfWeek().toISOString().split('T')[0];
             const endOfWeek = getEndOfWeek().toISOString().split('T')[0];
-            endpoint = 'http://127.0.0.1:5000/fetchSpecificSalesFromToReports';
+            endpoint = 'http://127.0.0.1:5000 /fetchSpecificSalesFromToReports';
             params = { dateFrom: startOfWeek, dateTo: endOfWeek };
             break;
         case 'thisMonth':
             const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
             const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
-            endpoint = 'http://127.0.0.1:5000/fetchSpecificSalesFromToReports';
+            endpoint = 'http://127.0.0.1:5000 /fetchSpecificSalesFromToReports';
             params = { dateFrom: startOfMonth, dateTo: endOfMonth };
             break;
     }

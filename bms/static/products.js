@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 function fetchUnits() {
-  fetch("http://127.0.0.1:5000/fetchAllUnits", {
+  fetch("http://127.0.0.1:5000 /fetchAllUnits", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -23,7 +23,7 @@ function fetchUnits() {
 }
 
 function fetchCategories() {
-  fetch("http://127.0.0.1:5000/fetchAllCategories", {
+  fetch("http://127.0.0.1:5000 /fetchAllCategories", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -56,7 +56,7 @@ function populateDropdown(elementId, options, key) {
 async function registerProduct() {
   let token = localStorage.getItem("token");
   // console.log(">>>>>>>>>token", token);
-  let response = await fetch("http://127.0.0.1:5000/profile", {
+  let response = await fetch("http://127.0.0.1:5000 /profile", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -95,7 +95,7 @@ async function registerProduct() {
     // Add other fields as needed
   };
 
-  fetch("http://127.0.0.1:5000/registerProduct", {
+  fetch("http://127.0.0.1:5000 /registerProduct", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const formData = new FormData(expenseForm);
         const data = Object.fromEntries(formData.entries());
 
-        fetch('http://127.0.0.1:5000/createAnExpense', {
+        fetch('http://127.0.0.1:5000 /createAnExpense', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch expenses (initial and after adding new expenses)
     function fetchExpenses() {
-        fetch('http://127.0.0.1:5000/fetchAllExpense', {
+        fetch('http://127.0.0.1:5000 /fetchAllExpense', {
             method: 'POST'
         })
         .then(response => response.json())
@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // Fetch filtered expenses based on dropdown selection
     fetchFilteredBtn.addEventListener("click", function () {
         const selectedFilter = filter.value;
-        fetch('http://127.0.0.1:5000/fetchSpecificExpense', {
+        fetch('http://127.0.0.1:5000 /fetchSpecificExpense', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -106,7 +106,7 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Please select a specific date");
             return;
         }
-        fetch('http://127.0.0.1:5000/fetchSpecificDateExpenses', {
+        fetch('http://127.0.0.1:5000 /fetchSpecificDateExpenses', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -133,7 +133,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch('http://127.0.0.1:5000/fetchExpensesFromTo', {
+        fetch('http://127.0.0.1:5000 /fetchExpensesFromTo', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

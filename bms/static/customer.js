@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/registerCustomer', {
+            const response = await fetch('http://127.0.0.1:5000 /registerCustomer', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -51,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/fetchSpecificCustomer', {
+            const response = await fetch('http://127.0.0.1:5000 /fetchSpecificCustomer', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fetch all customers and display them
     async function fetchAllCustomers() {
         try {
-            const response = await fetch('http://127.0.0.1:5000/fetchAllCustomers', {
+            const response = await fetch('http://127.0.0.1:5000 /fetchAllCustomers', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

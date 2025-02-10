@@ -26,7 +26,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const username = decodedToken.user_name;
 
   // Fetch products from the backend
-  fetch("http://127.0.0.1:5000/fetchAllProducts", {
+  fetch("http://127.0.0.1:5000 /fetchAllProducts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     // Add sale to backend
-    fetch("http://127.0.0.1:5000/addSale", {
+    fetch("http://127.0.0.1:5000 /addSale", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -162,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
             total: product.total,
           }));
 
-          fetch("http://127.0.0.1:5000/addSingleProductSale", {
+          fetch("http://127.0.0.1:5000 /addSingleProductSale", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

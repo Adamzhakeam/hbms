@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const userTableBody = document.getElementById("userTableBody");
 
   // Fetch all roles and populate dropdown
-  fetch("http://127.0.0.1:5000/fetchAllRoles", {
+  fetch("http://127.0.0.1:5000 /fetchAllRoles", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add the selected roleId to the payload
     payload["roleId"] = roleSelect.value;
 
-    fetch("http://127.0.0.1:5000/adduser", {
+    fetch("http://127.0.0.1:5000 /adduser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to fetch all users and populate the table
   function fetchAllusers() {
-    fetch("http://127.0.0.1:5000/fetchAllusers", {
+    fetch("http://127.0.0.1:5000 /fetchAllusers", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -137,7 +137,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to fetch role details by roleId
   function fetchRoleById(roleId) {
-    return fetch("http://127.0.0.1:5000/fetchRole", {
+    return fetch("http://127.0.0.1:5000 /fetchRole", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -166,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function revokeuser(phoneNumber) {
   let token = localStorage.getItem("token");
   // console.log(">>>>>>>>>token", token);
-  let response = await fetch("http://127.0.0.1:5000/profile", {
+  let response = await fetch("http://127.0.0.1:5000 /profile", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -182,7 +182,7 @@ async function revokeuser(phoneNumber) {
 
   console.log("Opening edit modal for productId:", phoneNumber); // Debugging log
   try {
-    const response = await fetch("http://127.0.0.1:5000/revokeuser", {
+    const response = await fetch("http://127.0.0.1:5000 /revokeuser", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

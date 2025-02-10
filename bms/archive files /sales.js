@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fetch products by category
   function fetchProductsByCategory(category) {
-    fetch("http://127.0.0.1:5000/fetchSpecificProductByCategory", {
+    fetch("http://127.0.0.1:5000 /fetchSpecificProductByCategory", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -93,7 +93,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fetch products by name
   function fetchProductsByName(productName) {
-    fetch("http://127.0.0.1:5000/fetchSpecificProduct", {
+    fetch("http://127.0.0.1:5000 /fetchSpecificProduct", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", () => {
       applyDiscountToSelectedProducts(discount);
     });
 
-  fetch("http://127.0.0.1:5000/fetchAllProducts", {
+  fetch("http://127.0.0.1:5000 /fetchAllProducts", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // others: { userName: sr }, // Replace with actual data
     };
 
-    fetch("http://127.0.0.1:5000/addSale", {
+    fetch("http://127.0.0.1:5000 /addSale", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // others: { name: sr }, // Replace with actual data
           }));
 
-          fetch("http://127.0.0.1:5000/addSingleProductSale", {
+          fetch("http://127.0.0.1:5000 /addSingleProductSale", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -390,7 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   let selectedProducts = []; // This will store the selected products for the sale
 
                   // Fetch products from the backend
-                  fetch("http://127.0.0.1:5000/fetchAllProducts", {
+                  fetch("http://127.0.0.1:5000 /fetchAllProducts", {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -539,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
                       // others: { userName: user_name }, // Replace with actual data
                     };
 
-                    fetch("http://127.0.0.1:5000/addSale", {
+                    fetch("http://127.0.0.1:5000 /addSale", {
                       method: "POST",
                       headers: {
                         "Content-Type": "application/json",
@@ -568,7 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             })
                           );
 
-                          fetch("http://127.0.0.1:5000/addSingleProductSale", {
+                          fetch("http://127.0.0.1:5000 /addSingleProductSale", {
                             method: "POST",
                             headers: {
                               "Content-Type": "application/json",
