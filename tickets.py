@@ -5,7 +5,7 @@
 import qrcode
 import kisa_utils as kutils
 import hashlib
-from api import sendDynamicMail
+from bms.app import sendDynamicMail
 def generateQrCode(clientDetails:dict)->dict:
     '''
         this function is responsible for generating a qr code 
