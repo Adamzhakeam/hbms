@@ -94,6 +94,11 @@ def sendDynamicMail(mailDetails:dict)->dict:
         
     return jsonify({'status': True, 'log': ''})
 
+@app.route('/')
+def home():
+    # Renders the index.html file located in the templates folder
+    return render_template('index.html')
+
 # -----endpoints to verify ticket 
 @app.route('/verifyQr', methods=['POST'])
 def verifyQr():
