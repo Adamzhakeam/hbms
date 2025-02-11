@@ -1,0 +1,5 @@
+Flask==2.3.3
+Flask-Cors==3.1.1
+PyJWT==2.8.0
+Flask-Mail==0.9.1
+kisa_utils==0.30.0
