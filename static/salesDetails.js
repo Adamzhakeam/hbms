@@ -8,17 +8,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalAmountPaidElem = document.getElementById('totalAmountPaid');
 
     // Fetch all sales on page load
-    fetchSales('http://127.0.0.1:5000 /fetchAllSales');
+    fetchSales('http://127.0.0.1:5000/fetchAllSales');
 
     // Add event listeners for the buttons
     fetchAllSalesBtn.addEventListener('click', () => {
-        fetchSales('http://127.0.0.1:5000 /fetchAllSales');
+        fetchSales('http://127.0.0.1:5000/fetchAllSales');
     });
 
     fetchSpecificSalesBtn.addEventListener('click', () => {
         const saleDate = prompt('Enter specific sale date (YYYY-MM-DD):');
         if (saleDate) {
-            fetchSales('http://127.0.0.1:5000 /fetchSpecificSales', { saleDate: saleDate });
+            fetchSales('http://127.0.0.1:5000/fetchSpecificSales', { saleDate: saleDate });
         }
     });
 
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const dateFrom = prompt('Enter start date (YYYY-MM-DD):');
         const dateTo = prompt('Enter end date (YYYY-MM-DD):');
         if (dateFrom && dateTo) {
-            fetchSales('http://127.0.0.1:5000 /fetchSpecificSalesFromTo', { dateFrom: dateFrom, dateTo: dateTo });
+            fetchSales('http://127.0.0.1:5000/fetchSpecificSalesFromTo', { dateFrom: dateFrom, dateTo: dateTo });
         }
     });
 
@@ -35,16 +35,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterOption = event.target.value;
         if (filterOption === 'today') {
             const today = new Date().toISOString().split('T')[0];
-            fetchSales('http://127.0.0.1:5000 /fetchSpecificSales', { saleDate: today });
+            fetchSales('http://127.0.0.1:5000/fetchSpecificSales', { saleDate: today });
         } else if (filterOption === 'thisMonth') {
             const date = new Date();
             const year = date.getFullYear();
             const month = ('0' + (date.getMonth() + 1)).slice(-2); // Get month in format MM
             const dateFrom = `${year}-${month}-01`;
             const dateTo = new Date(year, date.getMonth() + 1, 0).toISOString().split('T')[0];
-            fetchSales('http://127.0.0.1:5000 /fetchSpecificSalesFromTo', { dateFrom: dateFrom, dateTo: dateTo });
+            fetchSales('http://127.0.0.1:5000/fetchSpecificSalesFromTo', { dateFrom: dateFrom, dateTo: dateTo });
         } else {
-            fetchSales('http://127.0.0.1:5000 /fetchAllSales');
+            fetchSales('http://127.0.0.1:5000/fetchAllSales');
         }
     });
 

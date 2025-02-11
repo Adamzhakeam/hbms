@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchTotalProducts() {
-  fetch('http://127.0.0.1:5000 /fetchAllProducts', {
+  fetch('http://127.0.0.1:5000/fetchAllProducts', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchTotalSales() {
-  fetch('http://127.0.0.1:5000 /fetchAllSales', {
+  fetch('http://127.0.0.1:5000/fetchAllSales', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchTotalAmountPaid() {
-  fetch('http://127.0.0.1:5000 /fetchAllSales', {
+  fetch('http://127.0.0.1:5000/fetchAllSales', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function fetchCategories() {
-  fetch('http://127.0.0.1:5000 /fetchAllCategories', {
+  fetch('http://127.0.0.1:5000/fetchAllCategories', {
       method: 'POST',
       headers: {
           'Content-Type': 'application/json'
