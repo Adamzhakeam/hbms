@@ -17,7 +17,7 @@
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Sharp:opsz,wght,FILL,GRAD@48,400,0,0"
     />
-    <link rel="stylesheet" href="../../bms/static/userDashboard.css" />
+    <link rel="stylesheet" href="../../static/userDashboard.css" />
     <!DOCTYPE html>
     <html>
       <head>
@@ -97,7 +97,7 @@
             console.log(">>>>>>>>>token", token);
             if (!token) {
               alert("user not authenticated");
-              window.location.href = "/bms/templates/index.html";
+              window.location.href = "/templates/index.html";
               return;
             }
 
@@ -132,12 +132,12 @@
                 userInfoElement.textContent = `Logged in as: ${result.userName}`;
               } else {
                 alert(result.log);
-                window.location.href = "/bms/templates/index.html";
+                window.location.href = "/templates/index.html";
               }
             } catch (error) {
               console.error("Error:", error);
               alert("Failed to fetch user data");
-              window.location.href = "/bms/templates/index.html";
+              window.location.href = "/templates/index.html";
             }
           }
 
@@ -146,13 +146,13 @@
 
           // Home button function
           function goHome() {
-            window.location.href = "/bms/templates/usersDashboard.html"; // Adjust URL as needed
+            window.location.href = "/templates/usersDashboard.html"; // Adjust URL as needed
           }
 
           // Logout function
           document.getElementById("logout").onclick = function () {
             localStorage.removeItem("token"); // Clear the token from local storage
-            window.location.href = "/bms/templates/index.html"; // Redirect to the login page
+            window.location.href = "/templates/index.html"; // Redirect to the login page
           };
         </script>
       </body>
@@ -173,15 +173,15 @@
         </div>
         <!-- end top -->
         <div class="sidebar">
-          <a href="/bms/templates/usersDashboard.html" class="active">
+          <a href="/templates/usersDashboard.html" class="active">
             <span class="material-symbols-sharp">grid_view </span>
             <h3>Dashboard</h3>
           </a>
-          <a href="/bms/templates/customer.html">
+          <a href="/templates/customer.html">
             <span class="material-symbols-sharp">person_outline </span>
             <h3>customers</h3>
           </a>
-          <a href="/bms/templates/sales.html">
+          <a href="/templates/sales.html">
             <span class="material-symbols-sharp">insights </span>
             <h3>MakeSale</h3>
           </a>
@@ -190,7 +190,7 @@
             <h3>Messages</h3>
             <span class="msg_count">14</span>
           </a>
-          <a href="/bms/templates/roles.html">
+          <a href="/templates/roles.html">
             <span class="material-symbols-sharp">receipt_long </span>
             <h3>Roles</h3>
           </a>
@@ -202,7 +202,7 @@
             <span class="material-symbols-sharp">settings </span>
             <h3>settings</h3>
           </a>
-          <a href="/bms/templates/products.html">
+          <a href="/templates/products.html">
             <span class="material-symbols-sharp">add </span>
             <h3>Add Product</h3>
           </a>
@@ -344,7 +344,7 @@
                     const categoryDiv = document.getElementById("categoryDiv");
 
                     categoryDiv.addEventListener("click", () => {
-                      window.location.href = "/bms/templates/category.html"; // Replace with the path to your category page
+                      window.location.href = "/templates/category.html"; // Replace with the path to your category page
                     });
                   });
                 </script>
@@ -362,7 +362,7 @@
                     const categoryDiv = document.getElementById("unitDiv");
 
                     categoryDiv.addEventListener("click", () => {
-                      window.location.href = "/bms/templates/units.html"; // Replace with the path to your category page
+                      window.location.href = "/templates/units.html"; // Replace with the path to your category page
                     });
                   });
                 </script>
@@ -380,7 +380,7 @@
                     const categoryDiv = document.getElementById("userDiv");
 
                     categoryDiv.addEventListener("click", () => {
-                      window.location.href = "/bms/templates/users.html"; // Replace with the path to your category page
+                      window.location.href = "/templates/users.html"; // Replace with the path to your category page
                     });
                   });
                 </script>
@@ -444,6 +444,6 @@
       </div>
     </div>
 
-    <script src="../../bms/static/userDashBoard.js"></script>
+    <script src="../../static/userDashBoard.js"></script>
   </body>
 </html>

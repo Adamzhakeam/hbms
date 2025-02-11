@@ -82,7 +82,7 @@
                 console.log('>>>>>>>>>token', token);
                 if (!token) {
                     alert('user not authenticated');
-                    window.location.href = '/bms/templates/index.html';
+                    window.location.href = '/templates/index.html';
                     return;
                 }
     
@@ -117,12 +117,12 @@
                         userInfoElement.textContent = `Logged in as: ${result.userName}`;
                     } else {
                         alert(result.log);
-                        window.location.href = '/bms/templates/index.html';
+                        window.location.href = '/templates/index.html';
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     alert('Failed to fetch user data');
-                    window.location.href = '/bms/templates/index.html';
+                    window.location.href = '/templates/index.html';
                 }
             }
     
@@ -131,18 +131,18 @@
     
             // Home button function
             function goHome() {
-                window.location.href = '/bms/templates/usersDashboard.html'; // Adjust URL as needed
+                window.location.href = '/templates/usersDashboard.html'; // Adjust URL as needed
             }
     
             // Logout function
             document.getElementById('logout').onclick = function() {
                 localStorage.removeItem('token');  // Clear the token from local storage
-                window.location.href = '/bms/templates/index.html';  // Redirect to the login page
+                window.location.href = '/templates/index.html';  // Redirect to the login page
             };
         </script>
     </body>
     </html>
-    <link rel="stylesheet" href="../../bms/static/category.css">
+    <link rel="stylesheet" href="../../static/category.css">
    </head>
 <body>
     <button id="createCategoryBtn" class="btn btn-primary">Create Category</button>
@@ -171,6 +171,6 @@
         </tbody>
     </table>
 
-    <script src="../../bms/static/category.js"></script>
+    <script src="../../static/category.js"></script>
 </body>
 </html>

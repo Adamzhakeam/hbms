@@ -21,8 +21,8 @@ def generateQrCode(clientDetails:dict)->dict:
     ticketId , ticket = data.split('|')
     if insertTicketIntoDb({'ticketId':ticketId,'ticket':ticket})['status']:
         
-        # /home/predator/Documents/hbms/bms/static/images/logo-color (1).png
-        imagePath = f"/home/predator/Documents/hbms/bms/static/images/EroticHousePartyQr.png"
+        # /home/predator/Documents/hbms/static/images/logo-color (1).png
+        imagePath = f"/home/predator/Documents/hbms/static/images/EroticHousePartyQr.png"
         img.save(imagePath)
         return imagePath
     return {'status':False, 'log':'failed to generate and save ticket'}    
@@ -58,7 +58,7 @@ if __name__ =='__main__':
         "recipients":["magezibrian108@gmail.com"],
         "message":"testing attachments",
         "subject":"e-ticket",
-        "imagePath":["/home/predator/Documents/hbms/bms/ticket_adamzKata.png"]
+        "imagePath":["/home/predator/Documents/hbms/ticket_adamzKata.png"]
     }
     
     clientData = {

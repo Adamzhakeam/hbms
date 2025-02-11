@@ -79,7 +79,7 @@
                 console.log('>>>>>>>>>token', token);
                 if (!token) {
                     alert('user not authenticated');
-                    window.location.href = '/bms/templates/index.html';
+                    window.location.href = '/templates/index.html';
                     return;
                 }
     
@@ -114,12 +114,12 @@
                         userInfoElement.textContent = `Logged in as: ${result.userName}`;
                     } else {
                         alert(result.log);
-                        window.location.href = '/bms/templates/index.html';
+                        window.location.href = '/templates/index.html';
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     alert('Failed to fetch user data');
-                    window.location.href = '/bms/templates/index.html';
+                    window.location.href = '/templates/index.html';
                 }
             }
     
@@ -128,13 +128,13 @@
     
             // Home button function
             function goHome() {
-                window.location.href = '/bms/templates/usersDashboard.html'; // Adjust URL as needed
+                window.location.href = '/templates/usersDashboard.html'; // Adjust URL as needed
             }
     
             // Logout function
             document.getElementById('logout').onclick = function() {
                 localStorage.removeItem('token');  // Clear the token from local storage
-                window.location.href = '/bms/templates/index.html';  // Redirect to the login page
+                window.location.href = '/templates/index.html';  // Redirect to the login page
             };
         </script>
     </body>
@@ -142,7 +142,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create Role</title>
-    <link rel="stylesheet" href="../../bms/static/roles.css">
+    <link rel="stylesheet" href="../../static/roles.css">
     
 </head>
 
@@ -174,6 +174,6 @@
         </table>
     </div>
 
-    <script src="../../bms/static/roles.js"></script>
+    <script src="../../static/roles.js"></script>
 </body>
 </html>

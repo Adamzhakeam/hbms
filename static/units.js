@@ -77,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const token = localStorage.getItem("token");
       if (!token) {
           alert("User not authenticated");
-          window.location.href = "/bms/templates/index.html";
+          window.location.href = "/templates/index.html";
           return;
       }
 
@@ -95,23 +95,23 @@ document.addEventListener("DOMContentLoaded", () => {
               document.getElementById("user-info").textContent = `Logged in as: ${result.userName}`;
           } else {
               alert(result.log);
-              window.location.href = "/bms/templates/index.html";
+              window.location.href = "/templates/index.html";
           }
       } catch (error) {
           console.error("Error fetching user data:", error);
           alert("Failed to fetch user data");
-          window.location.href = "/bms/templates/index.html";
+          window.location.href = "/templates/index.html";
       }
   }
 
   // Logout function
   document.getElementById("logout").onclick = function() {
       localStorage.removeItem("token");
-      window.location.href = "/bms/templates/index.html";
+      window.location.href = "/templates/index.html";
   };
 
   // Home button function
   window.goHome = function() {
-      window.location.href = "/bms/templates/usersDashboard.html";
+      window.location.href = "/templates/usersDashboard.html";
   };
 });

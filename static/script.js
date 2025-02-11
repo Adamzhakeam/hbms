@@ -451,7 +451,7 @@ document.getElementById("loginForm").onsubmit = async function (event) {
     if (result.status) {
       // console.log(">>>>>>>>token", result.token);
       localStorage.setItem("token", result.token);
-      window.location.href = "/bms/templates/usersDashboard.html";
+      window.location.href = "/templates/usersDashboard.html";
     } else {
       alert(result.log); // Show error message if login fails
     }
