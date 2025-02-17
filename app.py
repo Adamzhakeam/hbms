@@ -96,7 +96,12 @@ def sendDynamicMail(mailDetails:dict)->dict:
 
 @app.route('/')
 def home():
+    # create the database tables if they don't exist 
+    from db import createTables
+    createTables()
+    
     # Renders the index.html file located in the templates folder
+    
     return render_template('index.html')
 
 # -----endpoints to verify ticket 

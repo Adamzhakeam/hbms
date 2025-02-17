@@ -316,6 +316,7 @@ def createTables():
     
     with kutils.db.Api(dbPath,dbTables, readonly=False) as db:
         creationResponse = db.createTables(dbTables)
+        print('>>>>>>>>>>>>>>tables didnt exist')
     return creationResponse
 
 
@@ -618,8 +619,8 @@ def addSingleProductSale(singleProductSales: list) -> dict:
                     [productSale['entryId'], productSale['timestamp'], productSale['dateSold'],productSale['saleId'], productSale['productId'], 
                      productSale['unitPrice'], productSale['productQuantity'], productSale['units'], productSale['total'], productSale['others']]
                 )
-                updateProductQuantity(productSale)
-                # print('productSubResp',response) 
+                response = updateProductQuantity(productSale)
+                print('productSubResp',response) 
                 
                 if not insertStatus['status']:
                     status = False
@@ -2270,7 +2271,7 @@ if __name__ == "__main__":
     # print(date)
     # print(createuser(user))
     # print(resetuserPassword({'phoneNumber':'0772442222'}))
-    print(login(user))
+    # print(login(user))
     # print(addSingleProductSale(singleProductSales))
     # print(insertProductIntoDb(product))
     # pprint.pprint(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))

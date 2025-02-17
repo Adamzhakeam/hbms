@@ -1,33 +1,58 @@
-/* ----the section below is for sales css  */
-/* style.css */
-/* Basic styles for container */
+/* Header Styles */
+.sales-header {
+    background-color: #4CAF50;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.header-button {
+    background-color: #ffffff;
+    color: #4CAF50;
+    border: none;
+    padding: 8px 16px;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.header-button:hover {
+    background-color: #f0f0f0;
+}
+
+/* Existing Sales CSS */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* Body styles */
 body {
     font-family: Arial, sans-serif;
     background-color: #f0f0f0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
 
-/* Sales container styles */
 .sales-container {
     width: 100%;
-    max-width: 480px;
+    max-width: 800px;
     padding: 20px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
 }
 
-/* Form styles */
 .sales-form {
     display: flex;
     flex-direction: column;
@@ -90,30 +115,6 @@ th {
     background-color: #f2f2f2;
 }
 
-@media (max-width: 480px) {
-    .sales-container {
-        padding: 15px;
-    }
-
-    button {
-        padding: 10px 15px;
-        font-size: 14px;
-    }
-
-    input[type="text"],
-    input[type="number"],
-    select {
-        padding: 8px;
-        font-size: 14px;
-    }
-
-    th, td {
-        padding: 6px;
-    }
-}
-
-/* ...existing CSS... */
-
 button.remove {
     background-color: #ff4d4d;
     color: white;
@@ -127,20 +128,6 @@ button.remove {
 
 button.remove:hover {
     background-color: #ff1a1a;
-}
-.sales-container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.sales-form {
-    display: flex;
-    flex-direction: column;
-}
-
-.form-group {
-    margin-bottom: 20px;
 }
 
 .flex-group {
@@ -157,6 +144,3 @@ button.remove:hover {
         flex-direction: column;
     }
 }
-
-
-/* ...existing CSS... */
