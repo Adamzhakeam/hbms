@@ -1036,7 +1036,7 @@ def fetchAllCustomers()->dict:
             'customers',
             ['*'],
             '',
-            [],limit = 1,
+            [],limit = 100,
             returnDicts= True,returnNamespaces=False,parseJson=False,returnGenerator=False
         )
         if len(customerFetchResponse) == 0:
@@ -2279,6 +2279,7 @@ if __name__ == "__main__":
     # print(editParticularProduct(productDetails))
     # knockedUp print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))
     # print(addCategoryToDb({'category':'BREMBO','others':{}}))
+    print(fetchAllCustomers())
     
     
     
