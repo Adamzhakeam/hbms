@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Generate and display receipt
   function generateReceipt(grandTotal, amountPaid, change) {
     const receiptContent = `
-      <h2>Receipt</h2>
+      <h2> Adamz POS Receipt</h2>
       <p><strong>Grand Total:</strong> ${grandTotal.toFixed(2)}</p>
       <p><strong>Amount Paid:</strong> ${amountPaid.toFixed(2)}</p>
       ${change > 0 ? `<p><strong>Change:</strong> ${change}</p>` : ''}
