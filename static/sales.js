@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const grandTotalElement = document.getElementById("grandTotal");
   const salesForm = document.getElementById("salesForm");
   const soldToDropdown = document.getElementById("soldTo");
+  const amountPaidInput = document.getElementById("amountPaid");
 
   let products = []; // Store fetched products
   let selectedProducts = []; // Store selected products for the sale
@@ -108,7 +109,7 @@ document.addEventListener("DOMContentLoaded", () => {
     products.forEach(product => {
       const option = document.createElement("option");
       option.value = product.productId;
-      option.textContent = `${product.productName} - ${product.productSalePrice} - ${product.productCategory}`;
+      option.textContent = `${product.productName} - ${formatNumber(product.productSalePrice)} - ${product.productCategory}`;
       productDropdown.appendChild(option);
     });
   }
@@ -161,9 +162,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${product.productName}</td>
-        <td>${product.productSalePrice}</td>
+        <td>${formatNumber(product.productSalePrice)}</td>
         <td>${product.quantity}</td>
-        <td>${product.total}</td>
+        <td>${formatNumber(product.total)}</td>
         <td><button type="button" class="remove" data-index="${index}">Remove</button></td>
       `;
       selectedProductsTable.appendChild(row);
@@ -186,19 +187,24 @@ document.addEventListener("DOMContentLoaded", () => {
   // Update the grand total
   function updateGrandTotal() {
     const grandTotal = selectedProducts.reduce((total, product) => total + product.total, 0);
-    grandTotalElement.textContent = grandTotal;
+    grandTotalElement.textContent = formatNumber(grandTotal);
+  }
+
+  // Format numbers with commas
+  function formatNumber(number) {
+    return number.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // Handle form submission
   salesForm.addEventListener("submit", event => {
     event.preventDefault();
     const soldTo = soldToDropdown.value; // Get the selected customerId
-    const amountPaid = parseFloat(document.getElementById("amountPaid").value);
+    const amountPaid = parseFloat(amountPaidInput.value.replace(/,/g, '')); // Remove commas before parsing
     const paymentType = document.getElementById("paymentType").value;
     const paymentStatus = document.getElementById("paymentStatus").value;
-    const grandTotal = parseFloat(grandTotalElement.textContent);
+    const grandTotal = parseFloat(grandTotalElement.textContent.replace(/,/g, '')); // Remove commas before parsing
 
-    if (isNaN(amountPaid) || amountPaid < 0) {
+    if (isNaN(amountPaid)) {
       alert("Please enter a valid amount paid.");
       return;
     }
@@ -211,14 +217,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Calculate change if amount paid is more than grand total
     const change = amountPaid > grandTotal ? (amountPaid - grandTotal).toFixed(2) : 0;
 
+    // Ensure the grandTotal is always pushed in the payload, even if amountPaid is greater
     const salePayload = {
-      grandTotal: grandTotal,
+      grandTotal: grandTotal, // Always use the grandTotal, not the amountPaid
       numberOfItemsSold: selectedProducts.length,
       soldBy: "brownthighs", // Replace with actual data
       soldTo: soldTo, // Use customerId here
       paymentType: paymentType,
       paymentStatus: paymentStatus,
-      amountPaid: amountPaid,
+      amountPaid: amountPaid, // Include the amountPaid in the payload
       others: { userName: "nakanjako" }, // Replace with actual data
     };
 
@@ -249,7 +256,7 @@ document.addEventListener("DOMContentLoaded", () => {
             saleId: saleId,
             productId: product.productId,
             unitPrice: product.productSalePrice,
-            units: product.units,
+            units:product.units,
             productQuantity: product.quantity,
             total: product.total,
             others: { name: "thickthighs" }, // Replace with actual data
@@ -296,14 +303,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Generate and display receipt
   function generateReceipt(grandTotal, amountPaid, change) {
     const receiptContent = `
-      <h2> Adamz POS Receipt</h2>
-      <p><strong>Grand Total:</strong> ${grandTotal.toFixed(2)}</p>
-      <p><strong>Amount Paid:</strong> ${amountPaid.toFixed(2)}</p>
-      ${change > 0 ? `<p><strong>Change:</strong> ${change}</p>` : ''}
+      <h2>Receipt</h2>
+      <p><strong>Grand Total:</strong> ${formatNumber(grandTotal)}</p>
+      <p><strong>Amount Paid:</strong> ${formatNumber(amountPaid)}</p>
+      ${change > 0 ? `<p><strong>Change:</strong> ${formatNumber(change)}</p>` : ''}
       <h3>Products Sold:</h3>
       <ul>
         ${selectedProducts.map(product => `
-          <li>${product.productName} - ${product.quantity} x ${product.productSalePrice.toFixed(2)} = ${product.total.toFixed(2)}</li>
+          <li>${product.productName} - ${product.quantity} x ${formatNumber(product.productSalePrice)} = ${formatNumber(product.total)}</li>
         `).join('')}
       </ul>
     `;
@@ -329,4 +336,12 @@ document.addEventListener("DOMContentLoaded", () => {
     `);
     receiptWindow.document.close();
   }
+
+  // Add commas to input fields for better readability
+  amountPaidInput.addEventListener("input", () => {
+    const value = amountPaidInput.value.replace(/,/g, '');
+    if (!isNaN(value)) {
+      amountPaidInput.value = formatNumber(parseFloat(value));
+    }
+  });
 });
