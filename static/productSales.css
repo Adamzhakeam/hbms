@@ -1,101 +1,145 @@
-/* ----- the code below is responsible for productsales page */
-#productDetails {
+/* General Styles */
+body {
     font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
     margin: 0;
     padding: 0;
+    background-color: #f4f4f9;
+    color: #333;
 }
 
+/* Header */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background-color: #4CAF50;
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.user-info {
+    display: flex;
+    gap: 10px;
+    font-size: 1em;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.buttons button {
+    padding: 8px 15px;
+    border: none;
+    background-color: #fff;
+    color: #4CAF50;
+    cursor: pointer;
+    font-size: 1em;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.buttons button:hover {
+    background-color: #ddd;
+}
+
+/* Main Content */
 .container {
     max-width: 1200px;
-    margin: auto;
+    margin: 20px auto;
     padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
     text-align: center;
     color: #2c3e50;
+    margin-bottom: 20px;
 }
 
 .buttons {
     display: flex;
-    justify-content: center;
+    gap: 10px;
     margin-bottom: 20px;
+    justify-content: center;
 }
 
-button {
+.buttons button {
     background-color: #4CAF50;
     color: white;
     border: none;
     padding: 10px 20px;
-    margin: 5px;
     cursor: pointer;
     border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
-button:hover {
+.buttons button:hover {
     background-color: #45a049;
 }
 
+/* Table */
 table {
     width: 100%;
     border-collapse: collapse;
     margin: 25px 0;
-    font-size: 18px;
+    font-size: 1em;
     text-align: left;
+    border: 1px solid #ddd;
 }
 
 table th, table td {
     padding: 12px 15px;
+    border: 1px solid #ddd;
 }
 
 table th {
-    background-color: #009879;
+    background-color: #4CAF50;
     color: white;
     text-align: center;
 }
 
 table tr:nth-child(even) {
-    background-color: #f3f3f3;
+    background-color: #f9f9f9;
 }
 
 table tr:nth-child(odd) {
     background-color: #fff;
 }
 
+table tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
-    .buttons {
+    .header {
         flex-direction: column;
-        align-items: center;
+        align-items: flex-start;
     }
 
-    table, table th, table td {
-        display: block;
+    .user-info {
+        margin-top: 10px;
+    }
+
+    .buttons {
+        margin-top: 10px;
+    }
+
+    .buttons button {
         width: 100%;
     }
 
-    table thead {
-        display: none;
-    }
-
-    table tr {
-        margin-bottom: 15px;
-    }
-
-    table td {
-        text-align: right;
-        padding-left: 50%;
-        position: relative;
-    }
-
-    table td::before {
-        content: attr(data-label);
-        position: absolute;
-        left: 0;
-        width: 50%;
-        padding-left: 15px;
-        font-weight: bold;
-        text-align: left;
+    table th, table td {
+        padding: 8px;
+        font-size: 0.9em;
     }
 }
-

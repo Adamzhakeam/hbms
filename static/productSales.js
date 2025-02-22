@@ -1,12 +1,10 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const fetchAllSalesBtn = document.getElementById('fetchAllProductSalesBtn');
     const fetchSpecificSalesBtn = document.getElementById('fetchSpecificProductSalesBtn');
     const fetchSalesFromToBtn = document.getElementById('fetchProductSalesFromToBtn');
     const salesTableBody = document.getElementById('salesTableBody');
 
-    fetchAllSalesBtn.addEventListener('click', () => {
-        fetchSales('http://127.0.0.1:5000/fetchAllProductSales');
-    });
+    // Automatically fetch all product sales on page load
+    fetchSales('http://127.0.0.1:5000/fetchAllProductSales');
 
     fetchSpecificSalesBtn.addEventListener('click', () => {
         const saleDate = prompt('Enter specific sale date (YYYY-MM-DD):');
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    function fetchSales(endpoint, payload) {
+    function fetchSales(endpoint, payload = {}) {
         console.log('Fetching sales from endpoint:', endpoint, 'with payload:', payload);
         fetch(endpoint, {
             method: 'POST',
@@ -82,11 +80,10 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td>${sale.saleId}</td>
                 <td>${productName}</td>
-                <td>${sale.unitPrice}</td>
+                <td>${parseFloat(sale.unitPrice).toLocaleString()}</td>
                 <td>${sale.quantity}</td>
                 <td>${sale.units}</td>
-                <td>${sale.total}</td>
-                
+                <td>${parseFloat(sale.total).toLocaleString()}</td>
             `;
             salesTableBody.appendChild(row);
         });
