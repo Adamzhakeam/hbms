@@ -1,14 +1,16 @@
-from flask import Flask,request,jsonify,session, redirect, url_for,render_template,make_response
+from flask import Flask,request,jsonify,session, redirect, url_for,render_template,make_response,send_file
 # from flask_sqlalchemy import SQL
 from functools import wraps
 from flask_cors import CORS
 import kisa_utils as kutils
-import jwt
+#import jwt
 from datetime import datetime, timedelta
 from auth_utils import generate_token, decode_token
 from flask_mail import Mail, Message
+from datetime import datetime
+from openpyxl import Workbook
 # import logging
-import os
+# import os
 
 app = Flask(__name__)
 CORS(app)
@@ -1221,6 +1223,7 @@ def revokeuserPermissions():
             response = revokeuser(payload)
             return jsonify(response)     
     return payloadStructureValidationResponse
+
 # ----the endPoints below handle discount ----
 @app.route('/setProductDiscount',methods=['POST'])
 def setProductDiscount():
@@ -1342,7 +1345,6 @@ def set_tiered_discount():
         }), 500
 
 @app.route('/fetchAllDiscountedProducts', methods=['POST'])
-# @checkLoggedIn()
 # @checkuserRole(['MANAGER','ADMIN'])
 def handleFetchAllDiscountedProducts():
     from db import fetchAllProductsWithDiscount
@@ -1352,6 +1354,79 @@ def handleFetchAllDiscountedProducts():
     response = fetchAllProductsWithDiscount()
     
     return jsonify(response)
+# ----the following endpoints below are responsible for handling the business documents  module ----
+@app.route('/generateInvoice', methods=['POST'])
+def handleGenerateInvoice():
+    data = request.get_json()
+    from db import fetchAllProducts
+
+    customer = data.get('customer')
+    products = data.get('products')
+
+    if not customer or not products:
+        return jsonify({'status': False, 'log': 'Customer and products are required'})
+
+    total_price = 0
+    invoice_items = []
+
+    all_products = fetchAllProducts()
+    if not all_products.get('status'):
+        return jsonify({'status': False, 'log': 'Failed to fetch products from database'})
+
+    product_list = all_products.get('log', [])
+
+    for product in products:
+        product_id = product.get('productId')
+        quantity = int(product.get('quantity', 0))
+
+        product_details = next((p for p in product_list if p['productId'] == product_id), None)
+        if not product_details:
+            return jsonify({'status': False, 'log': f'Product with ID {product_id} not found'})
+
+        sale_price = product_details.get('productSalePrice')
+        if sale_price is None:
+            return jsonify({'status': False, 'log': f'Product ID {product_id} has no sale price'})
+
+        item_total = sale_price * quantity
+        total_price += item_total
+
+        invoice_items.append([
+            product_id,
+            product_details.get('productName'),
+            quantity,
+            sale_price,
+            item_total
+        ])
+
+    # Generate Invoice as Excel File
+    invoice_file = generate_excel_invoice(customer, invoice_items, total_price)
+
+    return send_file(invoice_file, as_attachment=True, download_name="Invoice.xlsx", mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+def generate_excel_invoice(customer, items, total_price):
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Invoice"
+
+    # Header
+    ws.append(["Invoice", "", "", "", ""])
+    ws.append(["Customer", customer, "", "", ""])
+    ws.append(["Date", datetime.now().strftime('%Y-%m-%d %H:%M:%S'), "", "", ""])
+    ws.append(["", "", "", "", ""])
+    ws.append(["Product ID", "Product Name", "Quantity", "Sale Price", "Total Price"])
+
+    # Invoice Items
+    for item in items:
+        ws.append(item)
+
+    # Footer
+    ws.append(["", "", "", "Grand Total:", total_price])
+
+    # Save the file in a temporary directory
+    invoice_path = f"invoice_{datetime.now().strftime('%Y%m%d%H%M%S')}.xlsx"
+    wb.save(invoice_path)
+
+    return invoice_path
 
 
 def init():

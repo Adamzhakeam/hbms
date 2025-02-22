@@ -14,6 +14,8 @@
                         -product discounts 
                         -refunds and returns of damaged goods
                         -invoices and other related documents 
+                        -purchase order generation
+                        -invoice generation
 '''
 import kisa_utils as kutils
 import os
@@ -2248,7 +2250,7 @@ if __name__ == "__main__":
     # pprint.pprint(fetchAllProductsWithDiscount())
     # print(fetchSpecificProductById({'productId':'fYppObCw7JYX'}))
     # print(setProductFlatDiscountPrice(discountingDetails))
-    # pprint.pprint(fetchAllProducts())  
+    pprint.pprint(fetchAllCustomers())  
     # print(createRoles({'role':'MANAGER','others':{}})) 
     # print(addOpeningBalanceToCashdrawer(openingBalance)) 
     # print(fetchCashDrawerByDate())
@@ -2279,7 +2281,7 @@ if __name__ == "__main__":
     # print(editParticularProduct(productDetails))
     # knockedUp print(fetchSpecificProduct({'productName':'angeleyes','productSerialNumber':'154258963'}))
     # print(addCategoryToDb({'category':'BREMBO','others':{}}))
-    print(fetchAllCustomers())
+    # print(fetchAllCustomers())
     
     
     

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate Invoice</title>
+    <link rel="stylesheet" href="../static/generateInvoice.css">
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="header">
+        <h2>Invoice Generator</h2>
+        <div id="userInfo">
+            <span id="userName"></span>
+            <span id="userRole"></span>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Generate Invoice</h2>
+        <!-- Customer Selection -->
+        <label for="customer">Customer:</label>
+        <select id="customer" class="searchable-dropdown">
+            <option value="">Select Customer or Add New</option>
+        </select>
+        <div id="manualCustomer">
+            <input type="text" id="customerName" placeholder="Enter Customer Name">
+            <input type="text" id="customerPhone" placeholder="Enter Customer Phone">
+        </div>
+        <!-- Product Selection -->
+        <label for="product">Products:</label>
+        <select id="product" class="searchable-dropdown">
+            <option value="">Select Product</option>
+        </select>
+        <label for="quantity">Quantity:</label>
+        <input type="number" id="quantity" min="1" value="1">
+        <button onclick="addProduct()">Add Product</button>
+        <table id="invoiceTable">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Total</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <h3>Total Amount: <span id="totalAmount">0</span></h3>
+        <button onclick="generateInvoice()">Generate Invoice</button>
+    </div>
+
+    <!-- Load jQuery first -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Then load Select2 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <!-- Load XLSX library -->
+    <script src="../static/xlsx.full.min.js"></script>
+    <!-- Your custom JS -->
+    <script src="../static/generateInvoice.js"></script>
+</body>
+</html>
