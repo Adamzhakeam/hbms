@@ -153,8 +153,8 @@ function generateInvoice() {
     // Prepare invoice data
     let invoiceData = {
         customer: {
-            name: customer ? $('#customer option:selected').text().split(' - ')[0] : customerName,
-            phone: customer ? $('#customer option:selected').text().split(' - ')[1] : customerPhone
+            name: customer ? $('#customer option:selected').text().split(' _ ')[0] : customerName,
+            phone: customer ? $('#customer option:selected').text().split(' _ ')[1] : customerPhone
         },
         items: invoiceItems,
         totalAmount: parseFloat($('#totalAmount').text())

@@ -274,9 +274,6 @@ def dashboard():
     
     return jsonify({'status': True, 'userName': userName, 'role': role})
 
-
-
-
                 
 # ---- these are routes to handle products activities in the database ----
 @app.route('/registerProduct',methods=['POST'])
@@ -291,7 +288,6 @@ def handleRegisterProduct():
     payload['entryId'] = kutils.codes.new()
     payload['productId'] = kutils.codes.new()
     payload['timestamp'] = kutils.dates.currentTimestamp()
-    payload['userId'] = "sirkata"
     payload['others'] = {}
     payloadStructure = {
         'entryId':kutils.config.getValue('bmsDb/entryId'),

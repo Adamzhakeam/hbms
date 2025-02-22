@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
     fetchAllProducts(1); // Fetch initial products on page load
-    // Setup event listener for search input change
     const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', debounce(searchProducts, 300)); // Adjust debounce delay as needed
+    searchInput.addEventListener('input', debounce(searchProducts, 300));
 });
 
-// Global variable to keep track of the current page
 let currentPage = 1;
+let selectedProducts = []; // Array to store selected products
 
-// Fetch all products and populate the table with a limit of 4 items per page
 async function fetchAllProducts(page) {
     try {
         const response = await fetch('http://127.0.0.1:5000/fetchAllProducts', {
@@ -22,7 +20,7 @@ async function fetchAllProducts(page) {
 
         if (data.status) {
             populateTable(data.log);
-            currentPage = page; // Update the current page
+            currentPage = page;
         } else {
             alert(data.log);
         }
@@ -31,7 +29,6 @@ async function fetchAllProducts(page) {
     }
 }
 
-// Populate the product table with data
 function populateTable(products) {
     const tableBody = document.getElementById('productTableBody');
     tableBody.innerHTML = '';
@@ -44,21 +41,27 @@ function populateTable(products) {
             <td>${product.productCategory}</td>
             <td>${product.productQuantity}</td>
             <td>${product.productSalePrice}</td>
-            <td><button onclick="openEditModal('${product.productId}')">Edit</button></td>
+            <td>
+                <button onclick="openEditModal('${product.productId}')">Edit</button>
+                <button onclick="selectProduct('${product.productId}', '${product.productName}', '${product.productCategory}', '${product.units}')">Select</button>
+            </td>
         `;
         tableBody.appendChild(row);
     });
 }
 
-// Fetch the next set of products
 function fetchNextPage() {
     fetchAllProducts(currentPage + 1);
 }
 
-// Search products by name, serial number, or category
 async function searchProducts() {
-    const query = document.getElementById('searchInput').value.toLowerCase(); // Convert to lowercase
+    const query = document.getElementById('searchInput').value.trim().toLowerCase();
     const searchType = document.querySelector('input[name="searchType"]:checked').value;
+
+    if (!query) {
+        alert("Please enter a search term.");
+        return;
+    }
 
     let endpoint, payload;
     if (searchType === 'name') {
@@ -92,7 +95,54 @@ async function searchProducts() {
     }
 }
 
-// Open the edit modal and populate it with product details
+function selectProduct(productId, productName, productCategory, units) {
+    const product = { productId, productName, productCategory, units };
+    if (!selectedProducts.some(p => p.productId === productId)) {
+        selectedProducts.push(product);
+        alert(`${productName} added to selection.`);
+    } else {
+        alert(`${productName} is already selected.`);
+    }
+}
+
+function generatePurchaseOrder() {
+    if (selectedProducts.length === 0) {
+        alert("No products selected.");
+        return;
+    }
+
+    // Prepare purchase order data
+    const purchaseOrder = {
+        products: selectedProducts,
+        timestamp: new Date().toISOString()
+    };
+
+    // Log the purchase order (for debugging)
+    console.log("Purchase Order:", purchaseOrder);
+
+    // Create a worksheet from the selected products
+    const worksheetData = [
+        ["Product ID", "Product Name", "Category", "Units"] // Header row
+    ];
+
+    selectedProducts.forEach(product => {
+        worksheetData.push([product.productId, product.productName, product.productCategory, product.units]);
+    });
+
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    // Create a workbook and add the worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Purchase Order");
+
+    // Generate the Excel file and trigger download
+    const fileName = `Purchase_Order_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+
+    alert("Purchase order generated and downloaded successfully.");
+}
+
+// Function to open the edit modal and populate it with product details
 async function openEditModal(productId) {
     console.log('Opening edit modal for productId:', productId); // Debugging log
     try {
@@ -125,13 +175,13 @@ async function openEditModal(productId) {
     }
 }
 
-// Close the edit modal
+// Function to close the edit modal
 function closeModal() {
     document.getElementById('editModal').style.display = 'none';
     document.getElementById('editForm').removeAttribute('data-product-id'); // Clear the product ID
 }
 
-// Update the product details
+// Function to update the product details
 async function updateProduct(event) {
     event.preventDefault();
     const productId = document.getElementById('editForm').getAttribute('data-product-id');
